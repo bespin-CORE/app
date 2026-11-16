@@ -5,7 +5,7 @@
 | 항목 | 팀 목표 | 현재 확인 결과 | 다음 작업 |
 | --- | --- | --- | --- |
 | 저장소 경계 | 앱·Terraform 저장소와 GitOps 저장소 분리 | 앱(루트)과 `docs/`가 같은 저장소에 있다. 별도 GitOps 저장소는 이 작업에서 확인하지 않았다. | 저장소 소유자·구조 확정 후 이전 계획 수립 |
-| 빌드 | Gradle 단일화, Java 17 | Maven과 Gradle이 공존한다. 이전 검증은 Maven 기준이다. | Gradle 전체 빌드와 배포 절차를 확인한 후 Maven 제거 여부 결정 |
+| 빌드 | Gradle 단일화, Java 17 | Maven과 Gradle이 공존한다. 2026-11-16에 JDK 17로 `./gradlew clean check`가 통과했다(테스트 135건 중 실패 0, 건너뜀 4). | 배포 절차와 Buildpacks 이미지 빌드를 확인한 후 Maven 제거 여부 결정 |
 | DB 스키마 | Flyway, 운영 초기화 금지, JPA validate | MySQL 설정은 `spring.sql.init.mode=always`, JPA는 `ddl-auto=none`이다. Flyway 전환은 완료되지 않았다. | 기존 DB 백업·베이스라인·시드 분리·롤백 절차를 설계하고 검증 |
 | 관리 포트 | 앱 8080, Actuator 8081 분리 | 현재 설정에는 관리 포트 분리가 없다. 임시 서버는 Nginx에서 외부 `/actuator` 접근을 차단한다. | 프로브·모니터링 연동을 포함해 포트 분리 검증 |
 | DB 자격 증명 | 시크릿 주입, 기본 비밀번호에 의존하지 않음 | MySQL 설정에 로컬 기본값이 존재한다. 임시 서버는 별도 환경 변수로 주입한다. | 로컬 개발과 운영 설정 분리 및 필수 주입 검증 |
