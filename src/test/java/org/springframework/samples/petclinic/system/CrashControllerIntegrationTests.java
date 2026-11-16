@@ -78,7 +78,7 @@ class CrashControllerIntegrationTests {
 	void triggerExceptionHtml() {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(List.of(MediaType.TEXT_HTML));
-		ResponseEntity<String> resp = rest.exchange("http://localhost:" + port + "/oups", HttpMethod.GET,
+		ResponseEntity<String> resp = rest.exchange("http://localhost:" + port + "/oups?lang=en", HttpMethod.GET,
 				new HttpEntity<>(headers), String.class);
 		assertThat(resp).isNotNull();
 		assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -92,6 +92,7 @@ class CrashControllerIntegrationTests {
 				"This application has no explicit mapping for");
 	}
 
+	@org.springframework.context.annotation.Import(org.springframework.samples.petclinic.account.SecurityConfig.class)
 	@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class,
 			DataSourceTransactionManagerAutoConfiguration.class, HibernateJpaAutoConfiguration.class })
 	static class TestConfiguration {

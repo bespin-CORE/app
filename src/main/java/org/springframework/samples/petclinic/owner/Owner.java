@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.springframework.core.style.ToStringCreator;
+import org.springframework.samples.petclinic.account.AppUser;
 import org.springframework.samples.petclinic.model.Person;
 import org.springframework.util.Assert;
 
@@ -28,7 +29,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
@@ -61,13 +64,30 @@ public class Owner extends Person {
 
 	@Column
 	@NotBlank
-	@Pattern(regexp = "\\d{10}", message = "{telephone.invalid}")
+	@Pattern(regexp = "\\d{10,11}", message = "{telephone.invalid}")
 	private String telephone;
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@JoinColumn(name = "owner_id")
 	@OrderBy("name")
 	private final List<Pet> pets = new ArrayList<>();
+
+	/**
+	 * The login account that manages this owner record itself. Owners entered by staff
+	 * have none.
+	 */
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinTable(name = "owner_accounts", joinColumns = @JoinColumn(name = "owner_id"),
+			inverseJoinColumns = @JoinColumn(name = "user_id", unique = true))
+	private AppUser account;
+
+	public AppUser getAccount() {
+		return this.account;
+	}
+
+	public void setAccount(AppUser account) {
+		this.account = account;
+	}
 
 	public String getAddress() {
 		return this.address;

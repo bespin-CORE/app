@@ -22,7 +22,10 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.samples.petclinic.owner.Owner;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import jakarta.validation.ConstraintViolation;
@@ -75,6 +78,28 @@ class ValidatorTests {
 		ConstraintViolation<Person> violation = getOnlyViolation(constraintViolations);
 		assertThat(violation.getPropertyPath()).hasToString("lastName");
 		assertThat(violation.getMessage()).isEqualTo("must not be blank");
+	}
+
+	private Set<ConstraintViolation<Owner>> violationsOnTelephone(String telephone) {
+		Owner owner = new Owner();
+		owner.setFirstName("George");
+		owner.setLastName("Franklin");
+		owner.setAddress("110 W. Liberty St.");
+		owner.setCity("Madison");
+		owner.setTelephone(telephone);
+		return createValidator().validateProperty(owner, "telephone");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "0212345678", "01012345678" })
+	void ownerTelephoneAcceptsTenOrElevenDigits(String telephone) {
+		assertThat(violationsOnTelephone(telephone)).isEmpty();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "012345678", "010123456789", "010-1234-5678", "0101234567a" })
+	void ownerTelephoneRejectsOtherShapes(String telephone) {
+		assertThat(violationsOnTelephone(telephone)).hasSize(1);
 	}
 
 }

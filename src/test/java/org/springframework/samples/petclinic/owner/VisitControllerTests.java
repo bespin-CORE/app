@@ -41,6 +41,7 @@ import java.util.Optional;
  * @author Colin But
  * @author Wick Dynex
  */
+@org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(VisitController.class)
 @DisabledInNativeImage
 @DisabledInAotMode

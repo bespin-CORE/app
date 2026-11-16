@@ -57,6 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Colin But
  * @author Wick Dynex
  */
+@org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(OwnerController.class)
 @DisabledInNativeImage
 @DisabledInAotMode
