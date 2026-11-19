@@ -59,6 +59,26 @@ public class EmailController {
 		return "redirect:/";
 	}
 
+	@GetMapping("/verify-email/resend")
+	String resendPage() {
+		return "account/resend";
+	}
+
+	@PostMapping("/verify-email/resend")
+	String resendPublic(@RequestParam(defaultValue = "") String email) {
+		if (!EmailAddresses.hasControlCharacters(email)) {
+			String username = EmailAddresses.normalize(email);
+			if (EmailAddresses.isValid(username)) {
+				try {
+					this.emails.resendForUsername(username);
+				}
+				catch (UserEmailService.VerificationRateLimitedException ex) {
+				}
+			}
+		}
+		return "redirect:/verify-email/resend?sent";
+	}
+
 	private AppUser user(Principal principal) {
 		return this.users.findByUsername(principal.getName()).orElseThrow();
 	}

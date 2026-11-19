@@ -93,6 +93,17 @@ public class UserEmailService {
 				this.composer.compose(MailKind.VERIFY_EMAIL, Map.of("link", link)));
 	}
 
+	@Transactional
+	public void resendForUsername(String username) {
+		this.users.findByUsername(username).ifPresent(user -> {
+			this.users.findByIdForUpdate(user.getId()).orElseThrow();
+			this.emails.findById(user.getId())
+				.filter(e -> e.getVerifiedEmail() == null && e.getPendingEmail() != null
+						&& AppUser.ROLE_USER.equals(user.getRole()))
+				.ifPresent(e -> requestVerification(user, e.getPendingEmail()));
+		});
+	}
+
 	public VerifyResult verify(String raw) {
 		try {
 			return this.transactions.execute(status -> verifyInTransaction(raw));

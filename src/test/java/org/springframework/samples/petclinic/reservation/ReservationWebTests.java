@@ -165,6 +165,9 @@ class ReservationWebTests {
 	@Test
 	void signUpThenLogin() throws Exception {
 		String username = signUp();
+		var email = this.emailRows.findById(this.users.findByUsername(username).orElseThrow().getId()).orElseThrow();
+		email.setVerifiedEmail(username);
+		this.emailRows.saveAndFlush(email);
 		assertThat(this.users.findByUsername(username).orElseThrow().getPassword()).startsWith("$2")
 			.doesNotContain("password123");
 

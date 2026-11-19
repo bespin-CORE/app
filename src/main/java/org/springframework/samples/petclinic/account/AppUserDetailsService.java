@@ -15,15 +15,24 @@ public class AppUserDetailsService implements UserDetailsService {
 
 	private final AppUserRepository users;
 
-	public AppUserDetailsService(AppUserRepository users) {
+	private final UserEmailRepository emails;
+
+	public AppUserDetailsService(AppUserRepository users, UserEmailRepository emails) {
 		this.users = users;
+		this.emails = emails;
 	}
 
 	@Override
 	@Transactional(readOnly = true)
 	public UserDetails loadUserByUsername(String username) {
 		AppUser user = this.users.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(username));
-		return User.withUsername(user.getUsername()).password(user.getPassword()).roles(user.getRole()).build();
+		boolean enabled = !AppUser.ROLE_USER.equals(user.getRole())
+				|| this.emails.findById(user.getId()).map(e -> e.getVerifiedEmail() != null).orElse(true);
+		return User.withUsername(user.getUsername())
+			.password(user.getPassword())
+			.roles(user.getRole())
+			.disabled(!enabled)
+			.build();
 	}
 
 }

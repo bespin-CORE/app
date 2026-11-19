@@ -24,6 +24,9 @@
       <div class="vc-alert-error mt-6 mb-0" id="login-error" th:if="${param.error != null}" th:text="#{login.failed}"></div>
       <div class="vc-alert-info mt-6 mb-0" id="login-out" th:if="${param.logout != null}" th:text="#{login.loggedOut}"></div>
 
+      <div class="vc-alert-info" th:if="${param.unverified != null}">
+        <span th:text="#{login.unverified}"></span><a th:href="@{/verify-email/resend}" th:text="#{email.resend}"></a>
+      </div>
       <form class="mt-6 space-y-4" th:action="@{/login}" method="post" id="login-form">
         <div>
           <label class="vc-label" for="username" th:text="#{username}"></label>
