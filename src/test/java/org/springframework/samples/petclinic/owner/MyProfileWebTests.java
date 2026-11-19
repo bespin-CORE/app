@@ -52,6 +52,7 @@ class MyProfileWebTests {
 			.perform(post("/signup").with(csrf())
 				.param("username", username)
 				.param("password", "password123")
+				.param("email", username + "@example.com")
 				.param("displayName", "My Tester"))
 			.andExpect(redirectedUrl("/login"));
 		return username;

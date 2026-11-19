@@ -103,6 +103,7 @@ class ReservationWebTests {
 			.perform(post("/signup").with(csrf())
 				.param("username", username)
 				.param("password", "password123")
+				.param("email", username + "@example.com")
 				.param("displayName", "Web Tester"))
 			.andExpect(status().is3xxRedirection())
 			.andExpect(redirectedUrl("/login"));
@@ -179,6 +180,7 @@ class ReservationWebTests {
 			.perform(post("/signup").with(csrf())
 				.param("username", username)
 				.param("password", "password123")
+				.param("email", "again@example.com")
 				.param("displayName", "Again"))
 			.andExpect(status().isOk())
 			.andExpect(model().attributeHasFieldErrors("signupForm", "username"));
@@ -186,6 +188,7 @@ class ReservationWebTests {
 			.perform(post("/signup").with(csrf())
 				.param("username", "ok_name_" + SEQUENCE.incrementAndGet())
 				.param("password", "short")
+				.param("email", "weak@example.com")
 				.param("displayName", "Weak"))
 			.andExpect(status().isOk())
 			.andExpect(model().attributeHasFieldErrors("signupForm", "password"));

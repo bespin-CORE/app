@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
@@ -29,7 +30,7 @@ public class MailComposer {
 		resolver.setSuffix(".txt");
 		resolver.setTemplateMode(TemplateMode.TEXT);
 		resolver.setCharacterEncoding("UTF-8");
-		this.text = new TemplateEngine();
+		this.text = new SpringTemplateEngine();
 		this.text.setTemplateResolver(resolver);
 	}
 

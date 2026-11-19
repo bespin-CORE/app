@@ -24,10 +24,13 @@ class AccountController {
 
 	private final Clock clock;
 
-	AccountController(AppUserRepository users, PasswordEncoder passwordEncoder, Clock clock) {
+	private final UserEmailService emails;
+
+	AccountController(AppUserRepository users, PasswordEncoder passwordEncoder, Clock clock, UserEmailService emails) {
 		this.users = users;
 		this.passwordEncoder = passwordEncoder;
 		this.clock = clock;
+		this.emails = emails;
 	}
 
 	@GetMapping("/login")
@@ -41,11 +44,16 @@ class AccountController {
 		return "account/signup";
 	}
 
+	@org.springframework.transaction.annotation.Transactional
 	@PostMapping("/signup")
 	String signup(@Valid @ModelAttribute("signupForm") SignupForm form, BindingResult result,
 			RedirectAttributes redirectAttributes) {
 		if (!result.hasFieldErrors("username") && this.users.existsByUsername(form.getUsername())) {
 			result.rejectValue("username", "duplicate");
+		}
+		if (EmailAddresses.hasControlCharacters(form.getEmail())
+				|| !EmailAddresses.isValid(EmailAddresses.normalize(form.getEmail()))) {
+			result.rejectValue("email", "email.invalid");
 		}
 		if (result.hasErrors()) {
 			return "account/signup";
@@ -63,7 +71,8 @@ class AccountController {
 			result.rejectValue("username", "duplicate");
 			return "account/signup";
 		}
-		redirectAttributes.addFlashAttribute("messageKey", "signup.done");
+		this.emails.requestVerification(user, form.getEmail());
+		redirectAttributes.addFlashAttribute("messageKey", "signup.doneVerify");
 		return "redirect:/login";
 	}
 
