@@ -192,7 +192,10 @@ The Spring PetClinic sample application is released under version 2.0 of the [Ap
 | `MAIL_PASSWORD` | 해당 계정의 앱 비밀번호 |
 | `VETCORE_MAIL_ENABLED` | 발송 사용 여부 (`true`일 때 계정과 비밀번호 필수, 기본 `false`) |
 | `VETCORE_MAIL_BASE_URL` | 메일 링크에 쓸 공개 기준 URL (기본 `http://localhost:8080`) |
+| `VETCORE_MAIL_DOMAIN` | Message-ID와 SMTP EHLO 도메인 (선택, 비우면 기준 URL 호스트) |
 
 중복 가입의 SQL 오류 메시지에 이메일이 노출되지 않도록 Hibernate JDBC 오류 로거의 WARN을 억제하므로 다른 JDBC WARN도 출력되지 않습니다.
+
+도메인을 바꿀 위치와 순서는 [서비스 도메인 변경 절차](docs/operations/domain-change.md)를 참고합니다.
 
 SMTP는 Gmail 587 포트와 STARTTLS를 사용합니다. 실제 발송과 AWS·GCP에서 해당 포트의 아웃바운드 연결, 스팸 분류는 별도 검증이 필요합니다. 로드밸런서와 프록시는 인증·재설정 링크의 쿼리 문자열을 로그에 남기지 않도록 설정해야 합니다.
