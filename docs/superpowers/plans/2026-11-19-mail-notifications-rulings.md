@@ -16,3 +16,10 @@
 - R3: 변경 경로를 제거하고 인증 및 비밀번호 재설정은 검증 주소가 변경 불가능한 아이디와 같은 계정만 허용한다.
 - R4: 중복 키 선조회는 본문 생성만 생략하며 동시 실행의 최종 중복 방지는 기존 UNIQUE 제약과 별도 트랜잭션에 맡긴다.
 - R5: 보안 공급자가 필요한 기존 독립 MVC·오류 테스트에는 사용자 상세 서비스를 모킹한다. 중복 가입 시 Hibernate 경고에 이메일이 포함되어 JDBC 오류 로거의 WARN을 억제하며, 이에 따라 다른 JDBC WARN도 출력되지 않는다.
+
+## CodeRabbit 리뷰 반영
+
+- CR: 메일 활성화 시 `base-url`은 `https`만 허용하고, 로컬 개발·테스트용 `localhost`와 `127.0.0.1`의 `http`만 예외로 허용한다.
+- CR: 예약 취소의 `markCancelled`에 읽은 `schedule.id` 조건을 추가하고, 일정 변경의 대상 행 삭제는 `CANCELLED` 상태 조건부 DELETE로 바꿔 경합 시 `DUPLICATE`로 롤백한다.
+- CR: BCrypt 72바이트 제한은 기존 8~64자 규칙을 유지한 채 가입·재설정 컨트롤러에서 UTF-8 바이트 길이를 검사해 폼 오류(`password.tooLong`)로 반환한다.
+- CR: `EmailAddresses`는 도메인 각 라벨의 선두·후미 하이픈을 거부하고, `mail_outbox` 폴링 복합 인덱스는 H2·PostgreSQL은 `CREATE INDEX IF NOT EXISTS`, MySQL은 `CREATE TABLE` 내 `INDEX`로 재기동 멱등성을 보장한다.

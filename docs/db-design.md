@@ -192,11 +192,13 @@ SELECT COUNT(*) AS reservations, MAX(id) AS last_id, MAX(updated_at) AS last_cha
   FROM reservations;
 ```
 
-**리허설 전 예약 초기화:**
+**리허설 전 예약 초기화** (예약 트래픽을 먼저 막은 뒤—앱 중지 또는 WAS `replicas` 0—한 트랜잭션으로 실행):
 
 ```sql
+START TRANSACTION;
 DELETE FROM reservations;
 UPDATE treatment_schedules SET reserved_count = 0;
+COMMIT;
 ```
 
 ## 6. 복제(RDS → Cloud SQL)와의 관계
