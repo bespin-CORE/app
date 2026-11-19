@@ -20,4 +20,9 @@ public interface MailOutboxRepository extends JpaRepository<MailOutbox, Integer>
 
 	boolean existsByDedupeKey(String key);
 
+	@Modifying
+	@Transactional
+	@Query("update MailOutbox m set m.bodyText=null, m.bodyHtml=null where m.status=org.springframework.samples.petclinic.mail.MailStatus.SENT and m.kind in (org.springframework.samples.petclinic.mail.MailKind.VERIFY_EMAIL,org.springframework.samples.petclinic.mail.MailKind.RESET_PASSWORD) and m.sentAt < :cutoff and (m.bodyText is not null or m.bodyHtml is not null)")
+	int purgeLinkBodies(@Param("cutoff") LocalDateTime cutoff);
+
 }
