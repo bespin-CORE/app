@@ -47,6 +47,12 @@ import java.util.Optional;
 @DisabledInAotMode
 class VisitControllerTests {
 
+	@MockitoBean
+	org.springframework.samples.petclinic.account.AppUserRepository promptUsers;
+
+	@MockitoBean
+	org.springframework.samples.petclinic.account.UserEmailService promptEmails;
+
 	private static final int TEST_OWNER_ID = 1;
 
 	private static final int TEST_PET_ID = 1;

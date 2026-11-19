@@ -41,7 +41,9 @@ public class MailOutboxService {
 			}));
 		}
 		catch (DataIntegrityViolationException ex) {
-			return false;
+			if (this.repository.existsByDedupeKey(key))
+				return false;
+			throw ex;
 		}
 	}
 

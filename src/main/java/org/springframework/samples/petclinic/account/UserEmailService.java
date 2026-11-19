@@ -78,6 +78,7 @@ public class UserEmailService {
 		String email = EmailAddresses.normalize(rawEmail);
 		if (EmailAddresses.hasControlCharacters(rawEmail) || !EmailAddresses.isValid(email))
 			throw new IllegalArgumentException("Invalid email");
+		this.users.findByIdForUpdate(user.getId()).orElseThrow();
 		LocalDateTime now = LocalDateTime.now(this.clock);
 		if (this.tokens.issuedSince(user.getId(), TokenPurpose.VERIFY_EMAIL, now.minusHours(1)) >= 3)
 			throw new VerificationRateLimitedException();
@@ -106,6 +107,7 @@ public class UserEmailService {
 		if (candidate.isEmpty())
 			return VerifyResult.INVALID;
 		AccountToken token = candidate.get();
+		this.users.findByIdForUpdate(token.getUserId()).orElseThrow();
 		Optional<UserEmail> found = this.emails.findById(token.getUserId());
 		if (found.isEmpty() || !token.getEmail().equals(found.get().getPendingEmail()))
 			return VerifyResult.INVALID;

@@ -50,6 +50,9 @@ class ReservationWebTests {
 	AppUserRepository users;
 
 	@Autowired
+	org.springframework.samples.petclinic.account.UserEmailRepository emailRows;
+
+	@Autowired
 	TreatmentScheduleRepository schedules;
 
 	@Autowired
@@ -475,6 +478,22 @@ class ReservationWebTests {
 				.param("petName", "콩이"))
 			.andExpect(redirectedUrl("/reservations"));
 		assertThat(this.reservations.findById(id).orElseThrow().getPetName()).isEqualTo("콩이");
+	}
+
+	@Test
+	void verifiedUserReturnsToReservationsAfterBooking() throws Exception {
+		String username = signUp();
+		Integer id = users.findByUsername(username).orElseThrow().getId();
+		var email = emailRows.findById(id).orElseThrow();
+		email.setVerifiedEmail(username + "@example.com");
+		emailRows.saveAndFlush(email);
+		Integer scheduleId = openSchedule(2);
+		this.mockMvc
+			.perform(post("/reservations").with(user(username))
+				.with(csrf())
+				.param("scheduleId", scheduleId.toString())
+				.param("petName", "Leo"))
+			.andExpect(redirectedUrl("/reservations"));
 	}
 
 }

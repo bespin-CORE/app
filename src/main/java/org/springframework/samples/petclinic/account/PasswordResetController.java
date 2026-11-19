@@ -2,6 +2,8 @@ package org.springframework.samples.petclinic.account;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -29,21 +31,22 @@ public class PasswordResetController {
 	String form(@RequestParam(required = false) String token, Model model) {
 		if (!this.service.valid(token))
 			return invalid(model);
-		model.addAttribute("token", token);
+		PasswordResetForm form = new PasswordResetForm();
+		form.setToken(token);
+		model.addAttribute("resetForm", form);
 		return "account/reset";
 	}
 
 	@PostMapping("/password/reset")
-	String reset(@RequestParam String token, @RequestParam String password, @RequestParam String confirmPassword,
-			Model model, RedirectAttributes redirect) {
-		if (!this.service.valid(token))
+	String reset(@Valid @ModelAttribute("resetForm") PasswordResetForm form, BindingResult errors, Model model,
+			RedirectAttributes redirect) {
+		if (!this.service.valid(form.getToken()))
 			return invalid(model);
-		if (password.length() < 8 || password.length() > 64 || !password.equals(confirmPassword)) {
-			model.addAttribute("token", token);
-			model.addAttribute("errorKey", "password.invalid");
+		if (form.getPassword() != null && !form.getPassword().equals(form.getConfirmPassword()))
+			errors.rejectValue("confirmPassword", "password.invalid");
+		if (errors.hasErrors())
 			return "account/reset";
-		}
-		if (!this.service.reset(token, password))
+		if (!this.service.reset(form.getToken(), form.getPassword()))
 			return invalid(model);
 		redirect.addFlashAttribute("messageKey", "password.resetDone");
 		return "redirect:/login";

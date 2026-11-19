@@ -58,10 +58,14 @@ public class PasswordResetService {
 		if (!EmailAddresses.isValid(email))
 			return;
 		this.emails.findByVerifiedEmail(email).ifPresent(row -> {
+			AppUser user = this.users.findByIdForUpdate(row.getUserId()).orElseThrow();
+			if (this.emails.findByVerifiedEmail(email)
+				.filter(current -> current.getUserId().equals(user.getId()))
+				.isEmpty())
+				return;
 			if (this.tokens.issuedSince(row.getUserId(), TokenPurpose.RESET_PASSWORD,
 					LocalDateTime.now(this.clock).minusHours(1)) >= 3)
 				return;
-			AppUser user = this.users.findById(row.getUserId()).orElseThrow();
 			String raw = this.tokens.issue(user, TokenPurpose.RESET_PASSWORD, email, Duration.ofMinutes(30));
 			String link = this.properties.baseUrl() + "/password/reset?token=" + raw;
 			this.outbox.enqueue(MailKind.RESET_PASSWORD, email,
@@ -73,10 +77,13 @@ public class PasswordResetService {
 	public boolean reset(String raw, String password) {
 		if (password == null || password.length() < 8 || password.length() > 64)
 			return false;
+		var candidate = this.tokens.findValid(raw, TokenPurpose.RESET_PASSWORD);
+		if (candidate.isEmpty())
+			return false;
+		AppUser user = this.users.findByIdForUpdate(candidate.get().getUserId()).orElseThrow();
 		var token = this.tokens.consume(raw, TokenPurpose.RESET_PASSWORD);
 		if (token.isEmpty())
 			return false;
-		AppUser user = this.users.findById(token.get().getUserId()).orElseThrow();
 		user.setPassword(this.encoder.encode(password));
 		this.users.save(user);
 		this.tokenRows.invalidateUnused(user.getId(), TokenPurpose.RESET_PASSWORD, LocalDateTime.now(this.clock));

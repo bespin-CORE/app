@@ -214,3 +214,15 @@ UPDATE treatment_schedules SET reserved_count = 0;
 | PostgreSQL에서 스키마 생성 | ⚠️ 미검증 |
 | CHECK 제약이 초과를 막는지 | ⚠️ MySQL에서 미검증 |
 | `owner_accounts` (2026-11-16) | 🔍 H2 테스트 통과. 임시 서버 MySQL 8.0.46에서 자동 생성되어 보호자 정보 저장·조회가 동작함을 HTTPS 요청으로 확인. PostgreSQL은 ⚠️ 미검증 |
+
+### 메일 및 계정 토큰 테이블 (2026-11-19)
+
+기존 테이블을 변경하지 않고 H2·MySQL·PostgreSQL 스키마에 다음 세 테이블을 추가한다. MySQL 8.4에서의 실제 생성은 아직 검증하지 않았다.
+
+| 테이블 | 주요 컬럼 및 제약 | 이유 |
+| --- | --- | --- |
+| `user_emails` | `user_id` PK·FK, `pending_email`, 고유한 `verified_email`, `verified_at`, `updated_at` | 인증 전 새 주소와 기존 인증 주소를 함께 유지한다. |
+| `account_tokens` | `id` PK, `user_id` FK, `purpose`, 고유한 SHA-256 `token_hash`, `email`, `expires_at`, `used_at`, `created_at` | 일회용 인증·재설정 링크의 만료와 사용 여부를 저장한다. |
+| `mail_outbox` | `id` PK, `kind`, `recipient`, 제목·텍스트·HTML, 고유한 선택적 `dedupe_key`, 상태·시도·잠금·시각 필드 | 업무 트랜잭션과 메일 대기를 함께 기록하고 여러 인스턴스에서 조건부로 발송한다. |
+
+링크 원문은 토큰 테이블에 저장하지 않지만 발송 전 완성된 outbox 본문에는 포함된다. 발송 완료 7일 후 링크 메일 본문을 제거한다. 사전 알림의 키는 예약 번호와 치료 날짜로 구성하며, 상태 저장 전 발송기가 중단되면 최소 한 번 발송 특성상 중복될 수 있다.

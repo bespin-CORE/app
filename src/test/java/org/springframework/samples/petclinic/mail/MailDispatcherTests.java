@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @SpringBootTest(properties = { "vetcore.scheduling.enabled=false", "vetcore.mail.enabled=true",
 		"spring.mail.username=test@example.com", "spring.mail.password=x" })
@@ -135,6 +137,13 @@ class MailDispatcherTests {
 			.findFirst()
 			.orElseThrow()
 			.getBodyText()).isEqualTo("b");
+	}
+
+	@Test
+	void enqueueOnceDoesNotHideOtherConstraintErrors() {
+		assertThatThrownBy(() -> outbox.enqueueOnce(MailKind.VERIFY_EMAIL, "a@example.com",
+				new ComposedMail("a".repeat(201), "b", "c"), "new-key"))
+			.isInstanceOf(DataIntegrityViolationException.class);
 	}
 
 }

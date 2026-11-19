@@ -7,12 +7,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.samples.petclinic.account.*;
 import org.springframework.samples.petclinic.mail.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@SpringBootTest(properties = "vetcore.scheduling.enabled=false")
+@SpringBootTest(properties = { "vetcore.scheduling.enabled=false", "vetcore.mail.enabled=true",
+		"spring.mail.username=test@example.com", "spring.mail.password=x" })
+@Import(MailTestConfig.class)
 class ReservationMailTests {
 
 	@Autowired
@@ -39,6 +42,12 @@ class ReservationMailTests {
 	@Autowired
 	Clock clock;
 
+	@Autowired
+	RecordingMailSender sender;
+
+	@Autowired
+	MailDispatcher dispatcher;
+
 	AppUser user;
 
 	TreatmentSchedule schedule;
@@ -46,6 +55,7 @@ class ReservationMailTests {
 	@BeforeEach
 	void setup() {
 		outbox.deleteAll();
+		sender.reset();
 		user = new AppUser();
 		user.setUsername("mail" + System.nanoTime());
 		user.setDisplayName("Test");
@@ -104,6 +114,16 @@ class ReservationMailTests {
 		assertThatThrownBy(() -> service.book(user.getUsername(), schedule.getId(), "pet", null))
 			.isInstanceOf(ReservationException.class);
 		assertThat(outbox.count()).isZero();
+	}
+
+	@Test
+	void mailFailureDoesNotFailBooking() {
+		verify();
+		sender.failNext(10);
+		Integer id = service.book(user.getUsername(), schedule.getId(), "pet", null);
+		dispatcher.dispatchDue();
+		assertThat(reservations.findById(id).orElseThrow().getStatus()).isEqualTo(ReservationStatus.BOOKED);
+		assertThat(outbox.findAll().get(0).getStatus()).isEqualTo(MailStatus.PENDING);
 	}
 
 }

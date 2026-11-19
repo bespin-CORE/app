@@ -17,6 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 
 @SpringBootTest(properties = { "vetcore.scheduling.enabled=false", "vetcore.mail.enabled=true",
 		"spring.mail.username=test@example.com", "spring.mail.password=x" })
@@ -144,6 +146,41 @@ class PasswordResetTests {
 		session.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, username);
 		repository.save(session);
 		return session.getId();
+	}
+
+	@Test
+	void concurrentRequestsRespectRateLimit() throws Exception {
+		var executor = java.util.concurrent.Executors.newFixedThreadPool(6);
+		try {
+			var start = new java.util.concurrent.CountDownLatch(1);
+			var futures = new java.util.ArrayList<java.util.concurrent.Future<?>>();
+			for (int i = 0; i < 6; i++)
+				futures.add(executor.submit(() -> {
+					start.await();
+					service.requestReset(address);
+					return null;
+				}));
+			start.countDown();
+			for (var future : futures)
+				future.get();
+			assertThat(outbox.count()).isEqualTo(3);
+		}
+		finally {
+			executor.shutdownNow();
+		}
+	}
+
+	@Test
+	void mismatchedConfirmIsFormError() throws Exception {
+		service.requestReset(address);
+		String raw = token();
+		mvc.perform(post("/password/reset").with(csrf())
+			.param("token", raw)
+			.param("password", "newpassword")
+			.param("confirmPassword", "different"))
+			.andExpect(view().name("account/reset"))
+			.andExpect(model().attributeHasFieldErrors("resetForm", "confirmPassword"));
+		assertThat(encoder.matches("oldpassword", users.findById(user.getId()).orElseThrow().getPassword())).isTrue();
 	}
 
 }

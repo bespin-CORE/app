@@ -179,3 +179,16 @@ For additional details, please refer to the blog post [Hello DCO, Goodbye CLA: S
 ## License
 
 The Spring PetClinic sample application is released under version 2.0 of the [Apache License](https://www.apache.org/licenses/LICENSE-2.0).
+
+### 메일 설정
+
+메일은 기본적으로 꺼져 있으며 꺼진 상태에서 대기 행은 `SKIPPED`로 처리됩니다. 실제 발송을 사용할 때는 외부 시크릿 관리로 Gmail SMTP 계정과 앱 비밀번호를 공급하고, 공개 서비스 도메인을 링크 기준 주소로 지정합니다.
+
+| 환경 변수 | 설명 |
+| --- | --- |
+| `MAIL_USERNAME` | Gmail 발송 계정 |
+| `MAIL_PASSWORD` | 해당 계정의 앱 비밀번호 |
+| `VETCORE_MAIL_ENABLED` | 발송 사용 여부 (`true`일 때 계정과 비밀번호 필수, 기본 `false`) |
+| `VETCORE_MAIL_BASE_URL` | 메일 링크에 쓸 공개 기준 URL (기본 `http://localhost:8080`) |
+
+SMTP는 Gmail 587 포트와 STARTTLS를 사용합니다. 실제 발송과 AWS·GCP에서 해당 포트의 아웃바운드 연결, 스팸 분류는 별도 검증이 필요합니다. 로드밸런서와 프록시는 인증·재설정 링크의 쿼리 문자열을 로그에 남기지 않도록 설정해야 합니다.
