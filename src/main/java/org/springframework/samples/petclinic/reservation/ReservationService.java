@@ -27,12 +27,15 @@ public class ReservationService {
 
 	private final Clock clock;
 
+	private final ReservationMailer mailer;
+
 	public ReservationService(ReservationRepository reservations, TreatmentScheduleRepository schedules,
-			AppUserRepository users, Clock clock) {
+			AppUserRepository users, Clock clock, ReservationMailer mailer) {
 		this.reservations = reservations;
 		this.schedules = schedules;
 		this.users = users;
 		this.clock = clock;
+		this.mailer = mailer;
 	}
 
 	@Transactional(readOnly = true)
@@ -64,6 +67,7 @@ public class ReservationService {
 			if (this.reservations.markRebooked(existing.getId(), petName, memo, now) == 0) {
 				throw new ReservationException(Reason.DUPLICATE);
 			}
+			this.mailer.reservationBooked(existing.getId());
 			return existing.getId();
 		}
 		Reservation reservation = new Reservation();
@@ -74,7 +78,9 @@ public class ReservationService {
 		reservation.setCreatedAt(now);
 		reservation.setUpdatedAt(now);
 		try {
-			return this.reservations.saveAndFlush(reservation).getId();
+			Integer id = this.reservations.saveAndFlush(reservation).getId();
+			this.mailer.reservationBooked(id);
+			return id;
 		}
 		catch (DataIntegrityViolationException ex) {
 			// The same user sent two requests at once; the unique key let only one in.
@@ -97,6 +103,7 @@ public class ReservationService {
 			throw new ReservationException(Reason.NOT_FOUND);
 		}
 		this.schedules.releaseSeat(reservation.getSchedule().getId());
+		this.mailer.reservationCancelled(reservationId);
 	}
 
 	/**
@@ -118,6 +125,7 @@ public class ReservationService {
 			if (this.reservations.updateDetails(reservationId, petName, memo, now) == 0) {
 				throw new ReservationException(Reason.NOT_FOUND);
 			}
+			this.mailer.reservationChanged(reservationId);
 			return;
 		}
 
@@ -149,6 +157,7 @@ public class ReservationService {
 		if (!reserved) {
 			throw new ReservationException(Reason.FULL);
 		}
+		this.mailer.reservationChanged(reservationId);
 	}
 
 	private TreatmentSchedule bookableSchedule(Integer scheduleId, LocalDateTime now) {

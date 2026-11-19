@@ -39,12 +39,19 @@ class ReservationController {
 
 	private final Clock clock;
 
+	private final org.springframework.samples.petclinic.account.UserEmailService emails;
+
+	private final org.springframework.samples.petclinic.account.AppUserRepository users;
+
 	ReservationController(ReservationService service, TreatmentScheduleRepository schedules, OwnerRepository owners,
-			Clock clock) {
+			Clock clock, org.springframework.samples.petclinic.account.UserEmailService emails,
+			org.springframework.samples.petclinic.account.AppUserRepository users) {
 		this.service = service;
 		this.schedules = schedules;
 		this.owners = owners;
 		this.clock = clock;
+		this.emails = emails;
+		this.users = users;
 	}
 
 	@GetMapping("/reservations")
@@ -83,7 +90,9 @@ class ReservationController {
 			return refused(ex, model, principal, form.getScheduleId(), null);
 		}
 		redirectAttributes.addFlashAttribute("messageKey", "reservation.booked");
-		return "redirect:/reservations";
+		Integer userId = this.users.findByUsername(principal.getName()).orElseThrow().getId();
+		return this.emails.verifiedEmail(userId).isPresent() ? "redirect:/reservations"
+				: "redirect:/my/email?after=booking";
 	}
 
 	@GetMapping("/reservations/{reservationId}/edit")
