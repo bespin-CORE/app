@@ -1,6 +1,8 @@
 package org.springframework.samples.petclinic.reservation;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,5 +51,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
 	int moveToSchedule(@Param("id") Integer id, @Param("oldScheduleId") Integer oldScheduleId,
 			@Param("newSchedule") TreatmentSchedule newSchedule, @Param("petName") String petName,
 			@Param("memo") String memo, @Param("now") LocalDateTime now);
+
+	@Query("select r from Reservation r join fetch r.schedule s join fetch s.hospital join fetch r.user where r.status = org.springframework.samples.petclinic.reservation.ReservationStatus.BOOKED and s.treatmentDate in :dates")
+	List<Reservation> findBookedOnDates(@Param("dates") Collection<LocalDate> dates);
 
 }
