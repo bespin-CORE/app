@@ -59,4 +59,12 @@ public interface OwnerRepository extends JpaRepository<Owner, Integer> {
 	 */
 	Optional<Owner> findById(Integer id);
 
+	/**
+	 * Retrieve the {@link Owner} record that belongs to a login account.
+	 * @param username the username of the account
+	 * @return the owner linked to that account, or empty when the account has not entered
+	 * its owner information yet
+	 */
+	Optional<Owner> findByAccountUsername(String username);
+
 }

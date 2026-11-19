@@ -51,3 +51,24 @@ INSERT IGNORE INTO visits VALUES (1, 7, '2010-03-04', 'rabies shot');
 INSERT IGNORE INTO visits VALUES (2, 8, '2011-03-04', 'rabies shot');
 INSERT IGNORE INTO visits VALUES (3, 8, '2009-06-04', 'neutered');
 INSERT IGNORE INTO visits VALUES (4, 7, '2008-09-04', 'spayed');
+
+-- Partner hospitals and treatment schedules
+INSERT IGNORE INTO partner_hospitals (id, name, region, address, telephone) VALUES (1, '베트코어 서울본원', '서울', '서울특별시 강남구 테헤란로 100', '0212345678');
+INSERT IGNORE INTO partner_hospitals (id, name, region, address, telephone) VALUES (2, '한강동물의료센터', '서울', '서울특별시 마포구 월드컵로 20', '0223456789');
+INSERT IGNORE INTO partner_hospitals (id, name, region, address, telephone) VALUES (3, '해운대동물병원', '부산', '부산광역시 해운대구 센텀로 30', '0513456789');
+INSERT IGNORE INTO partner_hospitals (id, name, region, address, telephone) VALUES (4, '달구벌동물메디컬', '대구', '대구광역시 수성구 달구벌대로 40', '0534567890');
+INSERT IGNORE INTO partner_hospitals (id, name, region, address, telephone) VALUES (5, '빛고을동물병원', '광주', '광주광역시 서구 상무대로 50', '0625678901');
+INSERT IGNORE INTO partner_hospitals (id, name, region, address, telephone) VALUES (6, '한밭동물의료원', '대전', '대전광역시 유성구 대학로 60', '0426789012');
+
+INSERT IGNORE INTO treatment_schedules (id, hospital_id, treatment_name, treatment_date, start_time, capacity, reserved_count, booking_opens_at) VALUES (1, 1, '희귀질환 치료제 투여', '2026-12-23', '10:00:00', 300, 0, '2026-11-02 10:00:00');
+INSERT IGNORE INTO treatment_schedules (id, hospital_id, treatment_name, treatment_date, start_time, capacity, reserved_count, booking_opens_at) VALUES (2, 2, '희귀질환 치료제 투여', '2026-12-23', '10:00:00', 100, 0, '2026-11-02 10:00:00');
+INSERT IGNORE INTO treatment_schedules (id, hospital_id, treatment_name, treatment_date, start_time, capacity, reserved_count, booking_opens_at) VALUES (3, 3, '희귀질환 치료제 투여', '2026-12-23', '10:00:00', 50, 0, '2026-11-02 10:00:00');
+INSERT IGNORE INTO treatment_schedules (id, hospital_id, treatment_name, treatment_date, start_time, capacity, reserved_count, booking_opens_at) VALUES (4, 4, '희귀질환 치료제 투여', '2026-12-23', '10:00:00', 30, 0, '2026-11-02 10:00:00');
+INSERT IGNORE INTO treatment_schedules (id, hospital_id, treatment_name, treatment_date, start_time, capacity, reserved_count, booking_opens_at) VALUES (5, 5, '희귀질환 치료제 투여', '2026-12-23', '10:00:00', 30, 0, '2026-11-02 10:00:00');
+INSERT IGNORE INTO treatment_schedules (id, hospital_id, treatment_name, treatment_date, start_time, capacity, reserved_count, booking_opens_at) VALUES (6, 6, '희귀질환 치료제 투여', '2026-12-23', '10:00:00', 5, 0, '2026-11-02 10:00:00');
+INSERT IGNORE INTO treatment_schedules (id, hospital_id, treatment_name, treatment_date, start_time, capacity, reserved_count, booking_opens_at) VALUES (7, 1, '희귀질환 치료제 투여', '2027-01-20', '10:00:00', 300, 0, '2026-12-18 10:00:00');
+INSERT IGNORE INTO treatment_schedules (id, hospital_id, treatment_name, treatment_date, start_time, capacity, reserved_count, booking_opens_at) VALUES (8, 2, '희귀질환 치료제 투여', '2027-01-20', '10:00:00', 100, 0, '2026-12-18 10:00:00');
+INSERT IGNORE INTO treatment_schedules (id, hospital_id, treatment_name, treatment_date, start_time, capacity, reserved_count, booking_opens_at) VALUES (9, 3, '희귀질환 치료제 투여', '2027-01-20', '10:00:00', 50, 0, '2026-12-18 10:00:00');
+INSERT IGNORE INTO treatment_schedules (id, hospital_id, treatment_name, treatment_date, start_time, capacity, reserved_count, booking_opens_at) VALUES (10, 4, '희귀질환 치료제 투여', '2027-01-20', '10:00:00', 30, 0, '2026-12-18 10:00:00');
+INSERT IGNORE INTO treatment_schedules (id, hospital_id, treatment_name, treatment_date, start_time, capacity, reserved_count, booking_opens_at) VALUES (11, 5, '희귀질환 치료제 투여', '2027-01-20', '10:00:00', 30, 0, '2026-12-18 10:00:00');
+INSERT IGNORE INTO treatment_schedules (id, hospital_id, treatment_name, treatment_date, start_time, capacity, reserved_count, booking_opens_at) VALUES (12, 6, '희귀질환 치료제 투여', '2027-01-20', '10:00:00', 5, 0, '2026-12-18 10:00:00');

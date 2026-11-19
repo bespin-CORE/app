@@ -42,6 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Test class for the {@link VetController}
  */
 
+@org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(VetController.class)
 @DisabledInNativeImage
 @DisabledInAotMode

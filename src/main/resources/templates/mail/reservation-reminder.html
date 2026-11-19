@@ -1,0 +1,4 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+	th:replace="~{mail/fragments/layout :: page(#{mail.reservation.reminder.title}, #{mail.reservation.reminder.intro(${date}, ${time})}, ~{mail/fragments/components :: reminderContent}, ${baseUrl + '/reservations'}, #{mail.reservations.link}, null, null)}">
+</html>

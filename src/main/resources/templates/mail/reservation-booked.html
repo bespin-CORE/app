@@ -1,0 +1,4 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+	th:replace="~{mail/fragments/layout :: page(#{mail.reservation.booked.title}, #{mail.reservation.booked.intro}, ~{mail/fragments/components :: reservationDetails(false)}, ${baseUrl + '/reservations'}, #{mail.reservations.link}, null, null)}">
+</html>

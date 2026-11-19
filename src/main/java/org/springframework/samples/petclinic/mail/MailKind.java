@@ -1,0 +1,7 @@
+package org.springframework.samples.petclinic.mail;
+
+public enum MailKind {
+
+	RESERVATION_BOOKED, RESERVATION_CHANGED, RESERVATION_CANCELLED, RESERVATION_REMINDER, VERIFY_EMAIL, RESET_PASSWORD
+
+}

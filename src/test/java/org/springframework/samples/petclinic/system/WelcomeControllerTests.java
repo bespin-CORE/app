@@ -27,10 +27,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+@org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(WelcomeController.class)
 @DisabledInNativeImage
 @DisabledInAotMode
 class WelcomeControllerTests {
+
+	@org.springframework.test.context.bean.override.mockito.MockitoBean
+	org.springframework.samples.petclinic.account.AppUserDetailsService appUserDetailsService;
 
 	@Autowired
 	private MockMvc mockMvc;
