@@ -1,5 +1,0 @@
-<!DOCTYPE html><html xmlns:th="https://www.thymeleaf.org"><body>
-<p th:text="#{mail.summary.intro}"></p>
-<ul><li th:each="reservation : ${reservations}"><span th:text="${reservation.schedule.hospital.name}"></span> <span th:text="${reservation.schedule.treatmentName}"></span> <span th:text="${reservation.schedule.treatmentDate}"></span> <span th:text="${reservation.schedule.startTime}"></span> <span th:text="${reservation.petName}"></span></li></ul>
-<a th:href="${baseUrl + '/reservations'}" th:text="#{mail.reservations.link}"></a>
-</body></html>

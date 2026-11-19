@@ -48,12 +48,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisabledInAotMode
 class VetControllerTests {
 
-	@MockitoBean
-	org.springframework.samples.petclinic.account.AppUserRepository promptUsers;
-
-	@MockitoBean
-	org.springframework.samples.petclinic.account.UserEmailService promptEmails;
-
 	@Autowired
 	private MockMvc mockMvc;
 

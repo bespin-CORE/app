@@ -216,7 +216,7 @@ class ReservationWebTests {
 				.param("petName", "Leo")
 				.param("memo", "first"))
 			.andExpect(status().is3xxRedirection())
-			.andExpect(redirectedUrl("/my/email?after=booking"));
+			.andExpect(redirectedUrl("/reservations"));
 		Reservation reservation = this.reservations.findByUserUsernameOrderByCreatedAtDesc(username).get(0);
 
 		this.mockMvc.perform(get("/reservations").with(user(username)))
@@ -251,7 +251,7 @@ class ReservationWebTests {
 				.with(csrf())
 				.param("scheduleId", scheduleId.toString())
 				.param("petName", "A"))
-			.andExpect(redirectedUrl("/my/email?after=booking"));
+			.andExpect(redirectedUrl("/reservations"));
 
 		this.mockMvc
 			.perform(post("/reservations").with(user(second))
@@ -273,7 +273,7 @@ class ReservationWebTests {
 				.with(csrf())
 				.param("scheduleId", scheduleId.toString())
 				.param("petName", "Leo"))
-			.andExpect(redirectedUrl("/my/email?after=booking"));
+			.andExpect(redirectedUrl("/reservations"));
 		Integer id = this.reservations.findByUserUsernameOrderByCreatedAtDesc(owner).get(0).getId();
 
 		this.mockMvc.perform(get("/reservations/{id}/edit", id).with(user(other))).andExpect(status().isNotFound());
@@ -350,7 +350,7 @@ class ReservationWebTests {
 					.with(csrf())
 					.param("scheduleId", schedule.getId().toString())
 					.param("petName", "pet"))
-				.andExpect(redirectedUrl("/my/email?after=booking"));
+				.andExpect(redirectedUrl("/reservations"));
 		}
 		this.mockMvc.perform(get("/admin/schedules/{id}/edit", schedule.getId()).with(user("staff").roles("STAFF")))
 			.andExpect(status().isOk());
@@ -424,7 +424,7 @@ class ReservationWebTests {
 				.with(csrf())
 				.param("scheduleId", scheduleId.toString())
 				.param("petName", "콩이"))
-			.andExpect(redirectedUrl("/my/email?after=booking"));
+			.andExpect(redirectedUrl("/reservations"));
 	}
 
 	@Test

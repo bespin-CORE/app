@@ -4,7 +4,7 @@
 <div class="vc-card">
  <p th:if="${result.name() == 'VERIFIED'}" th:text="#{email.verifiedDone}"></p>
  <p th:if="${result.name() == 'INVALID'}" th:text="#{email.invalidLink}"></p>
- <p th:if="${result.name() == 'TAKEN'}" th:text="#{email.taken}"></p>
+ <p th:if="${result.name() == 'TAKEN'}" th:text="#{email.invalidLink}"></p>
  <a th:href="@{/}" th:text="#{email.home}"></a>
 </div>
 </body>

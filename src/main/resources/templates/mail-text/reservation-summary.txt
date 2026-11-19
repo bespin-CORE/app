@@ -1,4 +1,0 @@
-예약 목록:
-[# th:each="reservation : ${reservations}"][(${reservation.schedule.hospital.name})] [(${reservation.schedule.treatmentName})] [(${reservation.schedule.treatmentDate})] [(${reservation.schedule.startTime})] [(${reservation.petName})]
-[/]
-[(${baseUrl})]/reservations

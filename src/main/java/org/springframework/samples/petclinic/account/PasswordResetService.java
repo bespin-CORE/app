@@ -59,6 +59,8 @@ public class PasswordResetService {
 			return;
 		this.emails.findByVerifiedEmail(email).ifPresent(row -> {
 			AppUser user = this.users.findByIdForUpdate(row.getUserId()).orElseThrow();
+			if (!user.getUsername().equals(email))
+				return;
 			if (this.emails.findByVerifiedEmail(email)
 				.filter(current -> current.getUserId().equals(user.getId()))
 				.isEmpty())

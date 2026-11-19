@@ -63,7 +63,7 @@ class EmailVerificationTests {
 		tokens.deleteAll();
 		emailRows.deleteAll();
 		user = new AppUser();
-		user.setUsername("emailtest" + System.nanoTime());
+		user.setUsername("v" + System.nanoTime() + "@x.co");
 		user.setDisplayName("Test");
 		user.setPassword("encoded");
 		user.setCreatedAt(LocalDateTime.now());
@@ -77,8 +77,8 @@ class EmailVerificationTests {
 
 	@Test
 	void normalizesEmail() {
-		emails.requestVerification(user, " User@Example.COM ");
-		assertThat(emails.state(user.getId()).pending()).isEqualTo("user@example.com");
+		emails.requestVerification(user, " " + user.getUsername().toUpperCase(java.util.Locale.ROOT) + " ");
+		assertThat(emailRows.findById(user.getId()).orElseThrow().getPendingEmail()).isEqualTo(user.getUsername());
 	}
 
 	@Test
@@ -91,16 +91,16 @@ class EmailVerificationTests {
 
 	@Test
 	void verifyLinkVerifiesOnce() {
-		emails.requestVerification(user, "a@example.com");
+		emails.requestVerification(user, user.getUsername());
 		String raw = token();
 		assertThat(emails.verify(raw)).isEqualTo(UserEmailService.VerifyResult.VERIFIED);
 		assertThat(emails.verify(raw)).isEqualTo(UserEmailService.VerifyResult.INVALID);
-		assertThat(emails.verifiedEmail(user.getId())).contains("a@example.com");
+		assertThat(emails.verifiedEmail(user.getId())).contains(user.getUsername());
 	}
 
 	@Test
 	void expiredTokenIsInvalid() {
-		emails.requestVerification(user, "a@example.com");
+		emails.requestVerification(user, user.getUsername());
 		String raw = token();
 		AccountToken row = tokens.findAll().get(0);
 		row.setExpiresAt(LocalDateTime.now().minusDays(1));
@@ -109,66 +109,19 @@ class EmailVerificationTests {
 	}
 
 	@Test
-	void takenAddressIsRejected() {
-		emails.requestVerification(user, "a@example.com");
-		assertThat(emails.verify(token())).isEqualTo(UserEmailService.VerifyResult.VERIFIED);
-		AppUser other = new AppUser();
-		other.setUsername("other" + System.nanoTime());
-		other.setDisplayName("Other");
-		other.setPassword("encoded");
-		other.setCreatedAt(LocalDateTime.now());
-		other = users.saveAndFlush(other);
-		emails.requestVerification(other, "a@example.com");
-		assertThat(emails.verify(token())).isEqualTo(UserEmailService.VerifyResult.TAKEN);
-		assertThat(emails.verifiedEmail(other.getId())).isEmpty();
-	}
-
-	@Test
 	void resendLimitedToThreePerHour() {
 		for (int i = 0; i < 3; i++)
-			emails.requestVerification(user, "a@example.com");
-		assertThatThrownBy(() -> emails.requestVerification(user, "a@example.com"))
+			emails.requestVerification(user, user.getUsername());
+		assertThatThrownBy(() -> emails.requestVerification(user, user.getUsername()))
 			.isInstanceOf(UserEmailService.VerificationRateLimitedException.class);
 		assertThat(outbox.count()).isEqualTo(3);
 	}
 
 	@Test
 	void tokenNotStoredInPlain() {
-		emails.requestVerification(user, "a@example.com");
+		emails.requestVerification(user, user.getUsername());
 		String raw = token();
 		assertThat(tokens.findAll().get(0).getTokenHash()).isNotEqualTo(raw).hasSize(64);
-	}
-
-	@Test
-	void changingEmailKeepsOldUntilVerified() {
-		emails.requestVerification(user, "a@example.com");
-		emails.verify(token());
-		emails.requestVerification(user, "b@example.com");
-		assertThat(emails.state(user.getId()))
-			.isEqualTo(new UserEmailService.EmailState("a@example.com", "b@example.com"));
-	}
-
-	@Test
-	void summaryMailAfterVerification() {
-		TreatmentSchedule schedule = new TreatmentSchedule();
-		schedule.setHospital(hospitals.findById(1).orElseThrow());
-		schedule.setTreatmentName("Dental");
-		schedule.setTreatmentDate(LocalDateTime.now(clock).toLocalDate().plusDays(2));
-		schedule.setStartTime(LocalTime.NOON);
-		schedule.setCapacity(1);
-		schedule.setBookingOpensAt(LocalDateTime.now(clock).minusDays(1));
-		schedule = schedules.saveAndFlush(schedule);
-		reservations.book(user.getUsername(), schedule.getId(), "Pet", null);
-		emails.requestVerification(user, "summary@example.com");
-		String raw = token();
-		assertThat(emails.verify(raw)).isEqualTo(UserEmailService.VerifyResult.VERIFIED);
-		assertThat(outbox.findAll()).extracting(MailOutbox::getKind).contains(MailKind.RESERVATION_SUMMARY);
-		assertThat(outbox.findAll()
-			.stream()
-			.filter(m -> m.getKind() == MailKind.RESERVATION_SUMMARY)
-			.findFirst()
-			.orElseThrow()
-			.getBodyText()).contains("Dental");
 	}
 
 }

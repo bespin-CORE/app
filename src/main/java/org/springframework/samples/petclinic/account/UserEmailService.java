@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Optional;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.samples.petclinic.mail.*;
-import org.springframework.samples.petclinic.reservation.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +14,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 public class UserEmailService {
-
-	public record EmailState(String verified, String pending) {
-	}
 
 	public enum VerifyResult {
 
@@ -41,22 +37,19 @@ public class UserEmailService {
 
 	private final Clock clock;
 
-	private final ReservationRepository reservations;
-
 	private final AppUserRepository users;
 
 	private final TransactionTemplate transactions;
 
 	public UserEmailService(UserEmailRepository emails, AccountTokenService tokens, MailComposer composer,
-			MailOutboxService outbox, MailProperties properties, Clock clock, ReservationRepository reservations,
-			AppUserRepository users, PlatformTransactionManager manager) {
+			MailOutboxService outbox, MailProperties properties, Clock clock, AppUserRepository users,
+			PlatformTransactionManager manager) {
 		this.emails = emails;
 		this.tokens = tokens;
 		this.composer = composer;
 		this.outbox = outbox;
 		this.properties = properties;
 		this.clock = clock;
-		this.reservations = reservations;
 		this.users = users;
 		this.transactions = new TransactionTemplate(manager);
 	}
@@ -66,17 +59,11 @@ public class UserEmailService {
 		return this.emails.findById(id).map(UserEmail::getVerifiedEmail);
 	}
 
-	@Transactional(readOnly = true)
-	public EmailState state(Integer id) {
-		return this.emails.findById(id)
-			.map(e -> new EmailState(e.getVerifiedEmail(), e.getPendingEmail()))
-			.orElse(new EmailState(null, null));
-	}
-
 	@Transactional
 	public void requestVerification(AppUser user, String rawEmail) {
 		String email = EmailAddresses.normalize(rawEmail);
-		if (EmailAddresses.hasControlCharacters(rawEmail) || !EmailAddresses.isValid(email))
+		if (EmailAddresses.hasControlCharacters(rawEmail) || !EmailAddresses.isValid(email)
+				|| !email.equals(user.getUsername()))
 			throw new IllegalArgumentException("Invalid email");
 		this.users.findByIdForUpdate(user.getId()).orElseThrow();
 		LocalDateTime now = LocalDateTime.now(this.clock);
@@ -98,7 +85,7 @@ public class UserEmailService {
 		this.users.findByUsername(username).ifPresent(user -> {
 			this.users.findByIdForUpdate(user.getId()).orElseThrow();
 			this.emails.findById(user.getId())
-				.filter(e -> e.getVerifiedEmail() == null && e.getPendingEmail() != null
+				.filter(e -> e.getVerifiedEmail() == null && user.getUsername().equals(e.getPendingEmail())
 						&& AppUser.ROLE_USER.equals(user.getRole()))
 				.ifPresent(e -> requestVerification(user, e.getPendingEmail()));
 		});
@@ -118,7 +105,9 @@ public class UserEmailService {
 		if (candidate.isEmpty())
 			return VerifyResult.INVALID;
 		AccountToken token = candidate.get();
-		this.users.findByIdForUpdate(token.getUserId()).orElseThrow();
+		AppUser owner = this.users.findByIdForUpdate(token.getUserId()).orElseThrow();
+		if (!owner.getUsername().equals(token.getEmail()))
+			return VerifyResult.INVALID;
 		Optional<UserEmail> found = this.emails.findById(token.getUserId());
 		if (found.isEmpty() || !token.getEmail().equals(found.get().getPendingEmail()))
 			return VerifyResult.INVALID;
@@ -134,17 +123,6 @@ public class UserEmailService {
 		email.setPendingEmail(null);
 		email.setUpdatedAt(LocalDateTime.now(this.clock));
 		this.emails.saveAndFlush(email);
-		AppUser user = this.users.findById(token.getUserId()).orElseThrow();
-		var upcoming = this.reservations.findByUserUsernameOrderByCreatedAtDesc(user.getUsername())
-			.stream()
-			.filter(r -> r.isBooked() && r.getSchedule()
-				.getTreatmentDate()
-				.atTime(r.getSchedule().getStartTime())
-				.isAfter(LocalDateTime.now(this.clock)))
-			.toList();
-		if (!upcoming.isEmpty())
-			this.outbox.enqueue(MailKind.RESERVATION_SUMMARY, email.getVerifiedEmail(),
-					this.composer.compose(MailKind.RESERVATION_SUMMARY, Map.of("reservations", upcoming)));
 		return VerifyResult.VERIFIED;
 	}
 
