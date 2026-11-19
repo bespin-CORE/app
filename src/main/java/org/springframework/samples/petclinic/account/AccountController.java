@@ -1,36 +1,22 @@
 package org.springframework.samples.petclinic.account;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
-
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import jakarta.validation.Valid;
 
 @Controller
 class AccountController {
 
 	private final AppUserRepository users;
 
-	private final PasswordEncoder passwordEncoder;
+	private final AccountService accounts;
 
-	private final Clock clock;
-
-	private final UserEmailService emails;
-
-	AccountController(AppUserRepository users, PasswordEncoder passwordEncoder, Clock clock, UserEmailService emails) {
+	AccountController(AppUserRepository users, AccountService accounts) {
 		this.users = users;
-		this.passwordEncoder = passwordEncoder;
-		this.clock = clock;
-		this.emails = emails;
+		this.accounts = accounts;
 	}
 
 	@GetMapping("/login")
@@ -44,35 +30,26 @@ class AccountController {
 		return "account/signup";
 	}
 
-	@org.springframework.transaction.annotation.Transactional
 	@PostMapping("/signup")
 	String signup(@Valid @ModelAttribute("signupForm") SignupForm form, BindingResult result,
-			RedirectAttributes redirectAttributes) {
-		if (!result.hasFieldErrors("username") && this.users.existsByUsername(form.getUsername())) {
+			RedirectAttributes redirect) {
+		String raw = form.getUsername();
+		String username = EmailAddresses.normalize(raw);
+		form.setUsername(username);
+		if (EmailAddresses.hasControlCharacters(raw) || !EmailAddresses.isValid(username))
+			result.rejectValue("username", "signup.username.email");
+		else if (this.users.existsByUsername(username))
 			result.rejectValue("username", "duplicate");
-		}
-		if (EmailAddresses.hasControlCharacters(form.getEmail())
-				|| !EmailAddresses.isValid(EmailAddresses.normalize(form.getEmail()))) {
-			result.rejectValue("email", "email.invalid");
-		}
-		if (result.hasErrors()) {
+		if (result.hasErrors())
 			return "account/signup";
-		}
-		AppUser user = new AppUser();
-		user.setUsername(form.getUsername());
-		user.setPassword(this.passwordEncoder.encode(form.getPassword()));
-		user.setDisplayName(form.getDisplayName());
-		user.setCreatedAt(LocalDateTime.now(this.clock));
 		try {
-			this.users.saveAndFlush(user);
+			this.accounts.register(form);
 		}
-		catch (DataIntegrityViolationException ex) {
-			// Another request took the same username between the check and the insert
+		catch (AccountService.DuplicateUsernameException ex) {
 			result.rejectValue("username", "duplicate");
 			return "account/signup";
 		}
-		this.emails.requestVerification(user, form.getEmail());
-		redirectAttributes.addFlashAttribute("messageKey", "signup.doneVerify");
+		redirect.addFlashAttribute("messageKey", "signup.doneVerify");
 		return "redirect:/login";
 	}
 

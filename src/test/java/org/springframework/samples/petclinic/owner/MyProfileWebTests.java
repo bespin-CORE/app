@@ -47,7 +47,7 @@ class MyProfileWebTests {
 	AppUserRepository users;
 
 	private String signUp() throws Exception {
-		String username = "my_" + SEQUENCE.incrementAndGet();
+		String username = "my" + SEQUENCE.incrementAndGet() + "@ex.com";
 		this.mockMvc
 			.perform(post("/signup").with(csrf())
 				.param("username", username)

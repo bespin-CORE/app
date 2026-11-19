@@ -15,15 +15,11 @@ public final class EmailAddresses {
 		return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
 	}
 
+	public static final int MAX_LENGTH = 25;
+
 	public static boolean isValid(String email) {
-		if (email == null || email.length() > 254 || email.isEmpty())
-			return false;
-		for (int i = 0; i < email.length(); i++)
-			if (Character.isWhitespace(email.charAt(i)) || Character.isISOControl(email.charAt(i)))
-				return false;
-		int at = email.indexOf('@');
-		return at > 0 && at == email.lastIndexOf('@') && at < email.length() - 1
-				&& email.substring(at + 1).contains(".") && !email.endsWith(".");
+		return email != null && email.length() <= MAX_LENGTH
+				&& email.matches("[a-z0-9_+\\-]+(?:\\.[a-z0-9_+\\-]+)*@[a-z0-9-]+(?:\\.[a-z0-9-]+)*\\.[a-z]{2,}");
 	}
 
 	public static String mask(String email) {

@@ -171,19 +171,4 @@ class EmailVerificationTests {
 			.getBodyText()).contains("Dental");
 	}
 
-	@Test
-	void signupRequiresEmail() throws Exception {
-		String name = "signup" + System.nanoTime();
-		mvc.perform(post("/signup").with(csrf())
-			.param("username", name)
-			.param("password", "password123")
-			.param("displayName", "Test")).andExpect(model().attributeHasFieldErrors("signupForm", "email"));
-		mvc.perform(post("/signup").with(csrf())
-			.param("username", name)
-			.param("password", "password123")
-			.param("displayName", "Test")
-			.param("email", "signup@example.com")).andExpect(redirectedUrl("/login"));
-		assertThat(outbox.findAll()).extracting(MailOutbox::getRecipient).containsExactly("signup@example.com");
-	}
-
 }

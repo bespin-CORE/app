@@ -63,12 +63,12 @@ class PasswordResetTests {
 		tokens.deleteAll();
 		emails.deleteAll();
 		user = new AppUser();
-		user.setUsername("reset" + System.nanoTime());
+		user.setUsername("r" + System.nanoTime());
 		user.setPassword(encoder.encode("oldpassword"));
 		user.setDisplayName("Test");
 		user.setCreatedAt(LocalDateTime.now(clock));
 		user = users.saveAndFlush(user);
-		address = user.getUsername() + "@example.com";
+		address = user.getUsername() + "@x.co";
 		UserEmail email = new UserEmail();
 		email.setUserId(user.getId());
 		email.setVerifiedEmail(address);

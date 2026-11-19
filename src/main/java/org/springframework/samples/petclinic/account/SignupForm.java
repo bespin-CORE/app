@@ -1,13 +1,11 @@
 package org.springframework.samples.petclinic.account;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class SignupForm {
 
 	@NotBlank
-	@Pattern(regexp = "[A-Za-z0-9_]{3,30}", message = "{signup.username.invalid}")
 	private String username;
 
 	@NotBlank
@@ -40,16 +38,6 @@ public class SignupForm {
 
 	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
-	}
-
-	private String email;
-
-	public String getEmail() {
-		return this.email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
 	}
 
 }

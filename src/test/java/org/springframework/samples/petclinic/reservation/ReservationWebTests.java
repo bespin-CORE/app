@@ -101,7 +101,7 @@ class ReservationWebTests {
 	}
 
 	private String signUpWithoutPets() throws Exception {
-		String username = "web_" + SEQUENCE.incrementAndGet();
+		String username = "web" + SEQUENCE.incrementAndGet() + "@ex.com";
 		this.mockMvc
 			.perform(post("/signup").with(csrf())
 				.param("username", username)
@@ -189,7 +189,7 @@ class ReservationWebTests {
 			.andExpect(model().attributeHasFieldErrors("signupForm", "username"));
 		this.mockMvc
 			.perform(post("/signup").with(csrf())
-				.param("username", "ok_name_" + SEQUENCE.incrementAndGet())
+				.param("username", "ok" + SEQUENCE.incrementAndGet() + "@ex.com")
 				.param("password", "short")
 				.param("email", "weak@example.com")
 				.param("displayName", "Weak"))
