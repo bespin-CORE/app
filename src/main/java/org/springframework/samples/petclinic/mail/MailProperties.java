@@ -25,9 +25,18 @@ public record MailProperties(@DefaultValue("false") boolean enabled,
 	public boolean hasValidBaseUrl() {
 		try {
 			URI uri = URI.create(baseUrl);
-			return uri.isAbsolute()
-					&& ("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()))
-					&& uri.getHost() != null && !uri.getHost().isBlank();
+			if (!uri.isAbsolute() || uri.getHost() == null || uri.getHost().isBlank()) {
+				return false;
+			}
+			String scheme = uri.getScheme();
+			if ("https".equalsIgnoreCase(scheme)) {
+				return true;
+			}
+			if ("http".equalsIgnoreCase(scheme)) {
+				String host = uri.getHost();
+				return "localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host);
+			}
+			return false;
 		}
 		catch (IllegalArgumentException | NullPointerException ex) {
 			return false;

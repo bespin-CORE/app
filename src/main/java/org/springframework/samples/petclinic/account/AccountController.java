@@ -1,5 +1,6 @@
 package org.springframework.samples.petclinic.account;
 
+import java.nio.charset.StandardCharsets;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -40,6 +41,8 @@ class AccountController {
 			result.rejectValue("username", "signup.username.email");
 		else if (this.users.existsByUsername(username))
 			result.rejectValue("username", "duplicate");
+		if (form.getPassword() != null && form.getPassword().getBytes(StandardCharsets.UTF_8).length > 72)
+			result.rejectValue("password", "password.tooLong");
 		if (result.hasErrors())
 			return "account/signup";
 		try {

@@ -3,6 +3,7 @@ package org.springframework.samples.petclinic.reservation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.lang.reflect.Proxy;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -21,6 +22,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.samples.petclinic.account.AppUser;
 import org.springframework.samples.petclinic.account.AppUserRepository;
 import org.springframework.samples.petclinic.reservation.ReservationException.Reason;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Booking rules against a real (H2) database, including many requests at once.
@@ -47,6 +51,12 @@ class ReservationServiceTests {
 
 	@Autowired
 	Clock clock;
+
+	@Autowired
+	ReservationMailer mailer;
+
+	@Autowired
+	PlatformTransactionManager transactionManager;
 
 	private LocalDateTime now() {
 		return LocalDateTime.now(this.clock);
@@ -291,6 +301,74 @@ class ReservationServiceTests {
 
 		assertThat(booked).isEqualTo(1);
 		assertThat(reserved(scheduleId)).isEqualTo(1);
+	}
+
+	@Test
+	void cancelRefusedWhenScheduleChangedConcurrently() {
+		Integer from = openSchedule(3);
+		Integer to = openSchedule(3);
+		this.service.book(newUser(), from, "Other", null);
+		String user = newUser();
+		Integer id = this.service.book(user, from, "Leo", null);
+		assertThat(reserved(from)).isEqualTo(2);
+
+		TransactionTemplate requiresNew = new TransactionTemplate(this.transactionManager);
+		requiresNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+		ReservationRepository racingRepo = (ReservationRepository) Proxy.newProxyInstance(
+				ReservationRepository.class.getClassLoader(), new Class<?>[] { ReservationRepository.class },
+				(proxy, method, args) -> {
+					Object result = method.invoke(this.reservations, args);
+					if ("findByIdAndUserUsername".equals(method.getName())) {
+						requiresNew.executeWithoutResult(status -> this.service.change(user, id, to, "Leo", null));
+					}
+					return result;
+				});
+		ReservationService racingService = new ReservationService(racingRepo, this.schedules, this.users, this.clock,
+				this.mailer);
+		TransactionTemplate tx = new TransactionTemplate(this.transactionManager);
+
+		assertRefused(Reason.NOT_FOUND, () -> tx.executeWithoutResult(status -> racingService.cancel(user, id)));
+
+		assertThat(reserved(from)).isEqualTo(1);
+		assertThat(reserved(to)).isEqualTo(1);
+		Reservation saved = this.service.findMine(user, id);
+		assertThat(saved.getStatus()).isEqualTo(ReservationStatus.BOOKED);
+		assertThat(saved.getSchedule().getId()).isEqualTo(to);
+	}
+
+	@Test
+	void changeRefusedWhenTargetRebookedConcurrently() {
+		Integer from = openSchedule(3);
+		Integer to = openSchedule(3);
+		String user = newUser();
+		Integer fromId = this.service.book(user, from, "Leo", null);
+		Integer toId = this.service.book(user, to, "Leo", null);
+		this.service.cancel(user, toId);
+		assertThat(reserved(from)).isEqualTo(1);
+		assertThat(reserved(to)).isZero();
+
+		TransactionTemplate requiresNew = new TransactionTemplate(this.transactionManager);
+		requiresNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+		ReservationRepository racingRepo = (ReservationRepository) Proxy.newProxyInstance(
+				ReservationRepository.class.getClassLoader(), new Class<?>[] { ReservationRepository.class },
+				(proxy, method, args) -> {
+					Object result = method.invoke(this.reservations, args);
+					if ("findByScheduleIdAndUserId".equals(method.getName())) {
+						requiresNew.executeWithoutResult(status -> this.service.book(user, to, "Leo", "rebooked"));
+					}
+					return result;
+				});
+		ReservationService racingService = new ReservationService(racingRepo, this.schedules, this.users, this.clock,
+				this.mailer);
+		TransactionTemplate tx = new TransactionTemplate(this.transactionManager);
+
+		assertRefused(Reason.DUPLICATE,
+				() -> tx.executeWithoutResult(status -> racingService.change(user, fromId, to, "Leo", "moved")));
+
+		assertThat(reserved(from)).isEqualTo(1);
+		assertThat(reserved(to)).isEqualTo(1);
+		assertThat(this.service.findMine(user, fromId).getSchedule().getId()).isEqualTo(from);
+		assertThat(this.service.findMine(user, toId).getStatus()).isEqualTo(ReservationStatus.BOOKED);
 	}
 
 }

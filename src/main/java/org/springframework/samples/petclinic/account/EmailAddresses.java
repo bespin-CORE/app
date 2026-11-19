@@ -18,8 +18,8 @@ public final class EmailAddresses {
 	public static final int MAX_LENGTH = 25;
 
 	public static boolean isValid(String email) {
-		return email != null && email.length() <= MAX_LENGTH
-				&& email.matches("[a-z0-9_+\\-]+(?:\\.[a-z0-9_+\\-]+)*@[a-z0-9-]+(?:\\.[a-z0-9-]+)*\\.[a-z]{2,}");
+		return email != null && email.length() <= MAX_LENGTH && email.matches(
+				"[a-z0-9_+\\-]+(?:\\.[a-z0-9_+\\-]+)*@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*\\.[a-z]{2,}");
 	}
 
 	public static String mask(String email) {

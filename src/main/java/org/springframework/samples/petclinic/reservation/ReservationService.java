@@ -96,13 +96,14 @@ public class ReservationService {
 		if (!reservation.isBooked()) {
 			throw new ReservationException(Reason.NOT_FOUND);
 		}
+		Integer scheduleId = reservation.getSchedule().getId();
 		if (!reservation.getSchedule().isChangeableAt(now)) {
 			throw new ReservationException(Reason.ENDED);
 		}
-		if (this.reservations.markCancelled(reservationId, now) == 0) {
+		if (this.reservations.markCancelled(reservationId, scheduleId, now) == 0) {
 			throw new ReservationException(Reason.NOT_FOUND);
 		}
-		this.schedules.releaseSeat(reservation.getSchedule().getId());
+		this.schedules.releaseSeat(scheduleId);
 		this.mailer.reservationCancelled(reservationId);
 	}
 
@@ -137,8 +138,9 @@ public class ReservationService {
 				throw new ReservationException(Reason.DUPLICATE);
 			}
 			// An old cancelled row would collide with the unique key
-			this.reservations.delete(onTarget);
-			this.reservations.flush();
+			if (this.reservations.deleteIfCancelled(onTarget.getId()) == 0) {
+				throw new ReservationException(Reason.DUPLICATE);
+			}
 		}
 		if (this.reservations.moveToSchedule(reservationId, oldScheduleId, target, petName, memo, now) == 0) {
 			throw new ReservationException(Reason.NOT_FOUND);

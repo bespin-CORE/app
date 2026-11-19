@@ -1,5 +1,6 @@
 package org.springframework.samples.petclinic.account;
 
+import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -42,6 +43,8 @@ public class PasswordResetController {
 			RedirectAttributes redirect) {
 		if (!this.service.valid(form.getToken()))
 			return invalid(model);
+		if (form.getPassword() != null && form.getPassword().getBytes(StandardCharsets.UTF_8).length > 72)
+			errors.rejectValue("password", "password.tooLong");
 		if (form.getPassword() != null && !form.getPassword().equals(form.getConfirmPassword()))
 			errors.rejectValue("confirmPassword", "password.invalid");
 		if (errors.hasErrors())

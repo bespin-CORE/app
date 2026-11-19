@@ -46,11 +46,31 @@ class EmailSignupTests {
 	@Test
 	void rejectsInvalidUsernames() throws Exception {
 		for (String value : new String[] { "abcdefghijklmnopqrs@ex.com", "missing-at", "a..b@x.com", ".a@x.com",
-				"a@x.c", "x<y@z.com" })
+				"a@x.c", "x<y@z.com", "a@-x.com", "a@x-.com" })
 			mvc.perform(post("/signup").with(csrf())
 				.param("username", value)
 				.param("password", "password123")
 				.param("displayName", "Test")).andExpect(model().attributeHasFieldErrors("signupForm", "username"));
+	}
+
+	@Test
+	void validatesEmailDomainHyphenRules() {
+		assertThat(EmailAddresses.isValid("a@-x.com")).isFalse();
+		assertThat(EmailAddresses.isValid("a@x-.com")).isFalse();
+		assertThat(EmailAddresses.isValid("a@x-y.com")).isTrue();
+	}
+
+	@Test
+	void rejectsPasswordExceedingBcryptByteLimit() throws Exception {
+		String korean25 = "가".repeat(25);
+		mvc.perform(post("/signup").with(csrf())
+			.param("username", "bytes75@example.com")
+			.param("password", korean25)
+			.param("displayName", "Test"))
+			.andExpect(status().isOk())
+			.andExpect(view().name("account/signup"))
+			.andExpect(model().attributeHasFieldErrors("signupForm", "password"));
+		assertThat(users.findByUsername("bytes75@example.com")).isEmpty();
 	}
 
 	@Test

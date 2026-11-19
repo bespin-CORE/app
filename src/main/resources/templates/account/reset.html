@@ -1,8 +1,8 @@
 <!DOCTYPE html><html xmlns:th="https://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'login')}">
 <body><div class="vc-card"><h1 th:text="#{password.reset}"></h1>
 <form th:action="@{/password/reset}" th:object="${resetForm}" method="post"><input type="hidden" th:field="*{token}" />
-<label for="password" th:text="#{password.new}"></label><input id="password" name="password" type="password" minlength="8" maxlength="64" required />
+<label for="password" th:text="#{password.new}"></label><input id="password" name="password" type="password" minlength="8" maxlength="64" autocomplete="new-password" required />
 <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
-<label for="confirmPassword" th:text="#{password.confirm}"></label><input id="confirmPassword" name="confirmPassword" type="password" minlength="8" maxlength="64" required />
+<label for="confirmPassword" th:text="#{password.confirm}"></label><input id="confirmPassword" name="confirmPassword" type="password" minlength="8" maxlength="64" autocomplete="new-password" required />
 <span th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></span>
 <button class="vc-btn-primary" type="submit" th:text="#{password.reset}"></button></form></div></body></html>

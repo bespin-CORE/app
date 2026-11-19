@@ -15,8 +15,11 @@ import org.springframework.session.Session;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 
@@ -181,6 +184,34 @@ class PasswordResetTests {
 			.andExpect(view().name("account/reset"))
 			.andExpect(model().attributeHasFieldErrors("resetForm", "confirmPassword"));
 		assertThat(encoder.matches("oldpassword", users.findById(user.getId()).orElseThrow().getPassword())).isTrue();
+	}
+
+	@Test
+	void rejectsPasswordExceedingBcryptByteLimit() throws Exception {
+		service.requestReset(address);
+		String raw = token();
+		String korean25 = "가".repeat(25);
+		mvc.perform(post("/password/reset").with(csrf())
+			.param("token", raw)
+			.param("password", korean25)
+			.param("confirmPassword", korean25))
+			.andExpect(status().isOk())
+			.andExpect(view().name("account/reset"))
+			.andExpect(model().attributeHasFieldErrors("resetForm", "password"));
+		assertThat(encoder.matches("oldpassword", users.findById(user.getId()).orElseThrow().getPassword())).isTrue();
+	}
+
+	@Test
+	void resetFormHasNewPasswordAutocomplete() throws Exception {
+		service.requestReset(address);
+		String raw = token();
+		String html = mvc.perform(get("/password/reset").param("token", raw))
+			.andExpect(status().isOk())
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+		assertThat(html).containsPattern("id=\"password\"[^>]*autocomplete=\"new-password\"");
+		assertThat(html).containsPattern("id=\"confirmPassword\"[^>]*autocomplete=\"new-password\"");
 	}
 
 }

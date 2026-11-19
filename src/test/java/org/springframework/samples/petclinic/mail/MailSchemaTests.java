@@ -104,4 +104,20 @@ class MailSchemaTests {
 		assertThat(tokens.markUsed(expired.getId(), now)).isZero();
 	}
 
+	@Test
+	void outboxPollingIndexesExist() throws Exception {
+		var indexNames = jdbc.queryForList(
+				"SELECT INDEX_NAME FROM INFORMATION_SCHEMA.INDEXES WHERE TABLE_NAME = 'MAIL_OUTBOX'", String.class);
+		assertThat(indexNames).contains("IDX_MAIL_OUTBOX_STATUS_NEXT_ATTEMPT", "IDX_MAIL_OUTBOX_STATUS_LOCKED_UNTIL");
+		for (String db : new String[] { "h2", "mysql", "postgres" }) {
+			String sql = java.nio.file.Files
+				.readString(java.nio.file.Path.of("src/main/resources/db", db, "schema.sql"));
+			assertThat(sql).as("%s schema.sql", db)
+				.contains("idx_mail_outbox_status_next_attempt")
+				.contains("(status, next_attempt_at)")
+				.contains("idx_mail_outbox_status_locked_until")
+				.contains("(status, locked_until)");
+		}
+	}
+
 }

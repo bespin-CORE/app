@@ -27,9 +27,15 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
 	 */
 	@Modifying
 	@Query("update Reservation r set r.status = org.springframework.samples.petclinic.reservation.ReservationStatus.CANCELLED, "
-			+ "r.updatedAt = :now where r.id = :id "
+			+ "r.updatedAt = :now where r.id = :id and r.schedule.id = :scheduleId "
 			+ "and r.status = org.springframework.samples.petclinic.reservation.ReservationStatus.BOOKED")
-	int markCancelled(@Param("id") Integer id, @Param("now") LocalDateTime now);
+	int markCancelled(@Param("id") Integer id, @Param("scheduleId") Integer scheduleId,
+			@Param("now") LocalDateTime now);
+
+	@Modifying
+	@Query("delete from Reservation r where r.id = :id "
+			+ "and r.status = org.springframework.samples.petclinic.reservation.ReservationStatus.CANCELLED")
+	int deleteIfCancelled(@Param("id") Integer id);
 
 	@Modifying
 	@Query("update Reservation r set r.status = org.springframework.samples.petclinic.reservation.ReservationStatus.BOOKED, "
