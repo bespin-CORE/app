@@ -59,7 +59,7 @@ erDiagram
 | 컬럼 | 형식 | 제약 | 설명 |
 | --- | --- | --- | --- |
 | id | INT UNSIGNED | PK, 자동 증가 | |
-| username | VARCHAR(30) | NOT NULL, UNIQUE | 로그인 아이디 |
+| username | VARCHAR(30) | NOT NULL, UNIQUE | 로그인 아이디. 신규 고객은 애플리케이션에서 25자 이하 이메일로 제한 |
 | password | VARCHAR(100) | NOT NULL | BCrypt 해시 (60자) |
 | display_name | VARCHAR(30) | NOT NULL | 화면 표시 이름 |
 | role | VARCHAR(20) | NOT NULL | `USER`(보호자) 또는 `STAFF`(직원) |
@@ -221,7 +221,7 @@ UPDATE treatment_schedules SET reserved_count = 0;
 
 | 테이블 | 주요 컬럼 및 제약 | 이유 |
 | --- | --- | --- |
-| `user_emails` | `user_id` PK·FK, `pending_email`, 고유한 `verified_email`, `verified_at`, `updated_at` | 인증 전 새 주소와 기존 인증 주소를 함께 유지한다. |
+| `user_emails` | `user_id` PK·FK, `pending_email`, 고유한 `verified_email`, `verified_at`, `updated_at` | 가입 시 아이디를 대기 주소로 저장하고 인증 후 같은 아이디를 인증 주소로 기록한다. 아이디 변경 기능은 없다. |
 | `account_tokens` | `id` PK, `user_id` FK, `purpose`, 고유한 SHA-256 `token_hash`, `email`, `expires_at`, `used_at`, `created_at` | 일회용 인증·재설정 링크의 만료와 사용 여부를 저장한다. |
 | `mail_outbox` | `id` PK, `kind`, `recipient`, 제목·텍스트·HTML, 고유한 선택적 `dedupe_key`, 상태·시도·잠금·시각 필드 | 업무 트랜잭션과 메일 대기를 함께 기록하고 여러 인스턴스에서 조건부로 발송한다. |
 

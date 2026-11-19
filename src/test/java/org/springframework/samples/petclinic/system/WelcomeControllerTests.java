@@ -33,6 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisabledInAotMode
 class WelcomeControllerTests {
 
+	@org.springframework.test.context.bean.override.mockito.MockitoBean
+	org.springframework.samples.petclinic.account.AppUserDetailsService appUserDetailsService;
+
 	@Autowired
 	private MockMvc mockMvc;
 

@@ -52,6 +52,9 @@ import org.springframework.http.ResponseEntity;
 @AutoConfigureTestRestTemplate
 class CrashControllerIntegrationTests {
 
+	@org.springframework.test.context.bean.override.mockito.MockitoBean
+	org.springframework.samples.petclinic.account.AppUserDetailsService appUserDetailsService;
+
 	@Value("${local.server.port}")
 	private int port;
 
