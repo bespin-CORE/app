@@ -21,8 +21,8 @@ public class SecurityConfig {
 			.requestMatchers("/reservations/**", "/my/**")
 			.authenticated()
 			.requestMatchers("/", "/resources/**", "/webjars/**", "/error", "/oups", "/login", "/signup",
-					"/verify-email", "/hospitals/**", "/schedules/**", "/api/schedules/**", "/vets", "/vets.html",
-					"/actuator/health/**", "/actuator/info", "/actuator/prometheus")
+					"/verify-email", "/password/**", "/hospitals/**", "/schedules/**", "/api/schedules/**", "/vets",
+					"/vets.html", "/actuator/health/**", "/actuator/info", "/actuator/prometheus")
 			.permitAll()
 			.anyRequest()
 			.authenticated())
