@@ -81,6 +81,11 @@
     </div>
   </main>
 
+  <aside th:if="${emailPrompt}" id="email-prompt" class="vc-card" style="position: fixed; right: 1rem; bottom: 1rem; z-index: 50; max-width: 24rem; background: white; padding: 1rem; box-shadow: 0 2px 12px #777;">
+    <p th:text="#{email.prompt}"></p>
+    <a class="vc-btn-primary" th:href="@{/my/email}" th:text="#{email.prompt.now}"></a>
+    <form th:action="@{/my/email/prompt/dismiss}" method="post"><button type="submit" th:text="#{email.later}"></button></form>
+  </aside>
   <footer class="vc bg-surface-container-low mt-8">
     <div class="max-w-7xl mx-auto px-[1rem] md:px-8 py-6 flex flex-wrap items-center justify-between gap-[0.75rem]">
       <span class="text-title-md text-[#00685f]" th:text="#{brand}"></span>

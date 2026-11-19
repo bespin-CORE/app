@@ -53,6 +53,12 @@ public class EmailController {
 		return "account/verifyResult";
 	}
 
+	@PostMapping("/my/email/prompt/dismiss")
+	String dismiss(jakarta.servlet.http.HttpSession session) {
+		session.setAttribute("emailPromptDismissed", true);
+		return "redirect:/";
+	}
+
 	private AppUser user(Principal principal) {
 		return this.users.findByUsername(principal.getName()).orElseThrow();
 	}

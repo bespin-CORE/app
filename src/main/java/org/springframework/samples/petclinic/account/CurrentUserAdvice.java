@@ -12,6 +12,27 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ControllerAdvice
 class CurrentUserAdvice {
 
+	private final AppUserRepository users;
+
+	private final UserEmailService emails;
+
+	CurrentUserAdvice(AppUserRepository users, UserEmailService emails) {
+		this.users = users;
+		this.emails = emails;
+	}
+
+	@ModelAttribute("emailPrompt")
+	boolean emailPrompt(Principal principal, jakarta.servlet.http.HttpServletRequest request) {
+		String path = request.getRequestURI().substring(request.getContextPath().length());
+		if (principal == null || path.startsWith("/my/email") || path.startsWith("/verify-email")
+				|| path.startsWith("/password/") || (request.getSession(false) != null
+						&& Boolean.TRUE.equals(request.getSession(false).getAttribute("emailPromptDismissed"))))
+			return false;
+		return this.users.findByUsername(principal.getName())
+			.map(user -> this.emails.verifiedEmail(user.getId()).isEmpty())
+			.orElse(false);
+	}
+
 	@ModelAttribute("currentUsername")
 	String currentUsername(Principal principal) {
 		return (principal != null) ? principal.getName() : null;
