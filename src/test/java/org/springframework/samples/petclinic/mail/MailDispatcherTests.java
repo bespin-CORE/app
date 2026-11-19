@@ -4,6 +4,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import jakarta.mail.BodyPart;
+import jakarta.mail.Multipart;
+import jakarta.mail.Part;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,6 +165,38 @@ class MailDispatcherTests {
 	@Test
 	void smtpLocalhostUsesDomain() {
 		assertThat(sender.getSession().getProperty("mail.smtp.localhost")).isEqualTo("mail.example.org");
+	}
+
+	@Test
+	void logoAttachedInlineWithContentId() throws Exception {
+		enqueue();
+		assertThat(dispatcher.dispatchDue()).isEqualTo(1);
+		var message = sender.sent().get(0);
+		message.saveChanges();
+		BodyPart logoPart = findInlinePart(message, "<vetcore-logo>");
+		assertThat(logoPart).isNotNull();
+		assertThat(logoPart.getContentType()).startsWith("image/png");
+		assertThat(logoPart.getInputStream().readAllBytes()).isNotEmpty();
+	}
+
+	private BodyPart findInlinePart(Part part, String contentId) throws Exception {
+		Object content = part.getContent();
+		if (content instanceof Multipart multipart) {
+			for (int i = 0; i < multipart.getCount(); i++) {
+				BodyPart child = multipart.getBodyPart(i);
+				String[] ids = child.getHeader("Content-ID");
+				if (ids != null) {
+					for (String id : ids) {
+						if (contentId.equals(id))
+							return child;
+					}
+				}
+				BodyPart nested = findInlinePart(child, contentId);
+				if (nested != null)
+					return nested;
+			}
+		}
+		return null;
 	}
 
 }

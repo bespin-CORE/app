@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ClassPathResource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = { "vetcore.scheduling.enabled=false", "vetcore.mail.enabled=true",
@@ -145,6 +146,8 @@ class MailTemplateTests {
 
 		assertThat(mail.html()).contains("2026-05-20")
 			.contains("14:30")
+			.contains("예정된 진료 일정을 안내합니다")
+			.doesNotContain("곧 시작됩니다")
 			.contains("서울중앙동물병원")
 			.contains("종합 예방접종")
 			.contains("보리")
@@ -155,9 +158,33 @@ class MailTemplateTests {
 
 		assertThat(mail.text()).contains("2026-05-20")
 			.contains("14:30")
+			.contains("예정된 진료 일정을 안내합니다")
+			.doesNotContain("곧 시작됩니다")
 			.contains("서울중앙동물병원")
 			.contains("https://vetcore.example/reservations")
 			.contains("회신하지 마세요");
+	}
+
+	@Test
+	void htmlReferencesCidLogo() {
+		ComposedMail mail = composer.compose(MailKind.VERIFY_EMAIL,
+				Map.of("link", "https://vetcore.example/verify-email?token=abc"));
+
+		assertThat(mail.html()).contains("src=\"cid:vetcore-logo\"")
+			.contains("alt=\"VetCore\"")
+			.doesNotContain("<img src=\"http");
+	}
+
+	@Test
+	void logoResourceExists() throws Exception {
+		ClassPathResource logo = new ClassPathResource("mail/vetcore-logo.png");
+		assertThat(logo.exists()).isTrue();
+		byte[] bytes = logo.getContentAsByteArray();
+		assertThat(bytes.length).isGreaterThan(100);
+		assertThat(bytes[0]).isEqualTo((byte) 0x89);
+		assertThat(bytes[1]).isEqualTo((byte) 'P');
+		assertThat(bytes[2]).isEqualTo((byte) 'N');
+		assertThat(bytes[3]).isEqualTo((byte) 'G');
 	}
 
 }

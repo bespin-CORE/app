@@ -9,6 +9,7 @@ import jakarta.mail.Session;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -72,6 +73,9 @@ public class MailDispatcher {
 				helper.setTo(candidate.getRecipient());
 				helper.setSubject(candidate.getSubject());
 				helper.setText(candidate.getBodyText(), candidate.getBodyHtml());
+				if (candidate.getBodyHtml() != null && !candidate.getBodyHtml().isBlank()) {
+					helper.addInline("vetcore-logo", new ClassPathResource("mail/vetcore-logo.png"), "image/png");
+				}
 				this.sender.send(message);
 				update(id, row -> {
 					row.setStatus(MailStatus.SENT);
