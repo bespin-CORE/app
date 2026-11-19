@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | 임시 서버 | 앱 서버의 `/etc/vetcore/app.env` | `VETCORE_MAIL_BASE_URL` | `https://petclinix.cloud` → `https://새도메인` |
 | 로컬 개발 | 실행 환경 변수 또는 `src/main/resources/application.properties` 54행 | `VETCORE_MAIL_BASE_URL` 환경 변수 또는 `vetcore.mail.base-url` 기본값 | 환경 변수 `https://petclinix.cloud` → `https://새도메인` |
-| EKS·GKE | 별도 GitOps 저장소의 `aws-dev`, `aws-prod`, `gcp-dr` 오버레이별 앱 ConfigMap (예정 경로, 실제 매니페스트 미확인) | `VETCORE_MAIL_BASE_URL` | 각 오버레이에 같은 값으로 `https://petclinix.cloud` → `https://새도메인` |
+| EKS·GKE | 별도 GitOps 저장소의 예정 경로 `overlays/aws-dev/configmap.yaml`, `overlays/aws-prod/configmap.yaml`, `overlays/gcp-dr/configmap.yaml` (실제 파일명·구조 미확인) | `VETCORE_MAIL_BASE_URL` | 각 오버레이에 같은 값으로 `https://petclinix.cloud` → `https://새도메인` |
 
 임시 서버에서는 `VETCORE_MAIL_DOMAIN`을 비워 두면 기준 URL의 호스트가 자동으로 사용된다. 설정 저장 후 담당자가 `sudo systemctl restart vetcore`를 실행한다. 로컬 개발의 현재 기본값 줄은 아래와 같고 기본값이 로컬 주소이므로 보통 파일을 수정하지 않고 환경 변수로 지정한다.
 
@@ -36,7 +36,7 @@ git grep -n 'petclinix' -- src
 
 ## 인프라 체크리스트
 
-이 절은 담당자 인계를 위한 안내이며 이 문서만으로 인프라가 변경되지는 않는다.
+이 절은 담당자 인계를 위한 안내이며 이 문서만으로 인프라가 변경되지는 않는다. GitOps 경로는 계획 예시이므로 담당자가 실제 저장소 구조를 확인해 확정한다.
 
 | 담당 | 확인할 위치 |
 | --- | --- |
