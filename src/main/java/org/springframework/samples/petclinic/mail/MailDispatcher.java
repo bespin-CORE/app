@@ -8,6 +8,7 @@ import java.util.Properties;
 import jakarta.mail.Session;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.PageRequest;
@@ -17,7 +18,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
-import jakarta.mail.internet.MimeMessage;
 
 @Component
 public class MailDispatcher {
@@ -74,7 +74,8 @@ public class MailDispatcher {
 				helper.setSubject(candidate.getSubject());
 				helper.setText(candidate.getBodyText(), candidate.getBodyHtml());
 				if (candidate.getBodyHtml() != null && !candidate.getBodyHtml().isBlank()) {
-					helper.addInline("vetcore-logo", new ClassPathResource("mail/vetcore-logo.png"), "image/png");
+					helper.addInline("vetcore-logo", "vetcore-logo.png", new ClassPathResource("mail/vetcore-logo.png"),
+							"image/png");
 				}
 				this.sender.send(message);
 				update(id, row -> {

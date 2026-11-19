@@ -175,7 +175,8 @@ class MailDispatcherTests {
 		message.saveChanges();
 		BodyPart logoPart = findInlinePart(message, "<vetcore-logo>");
 		assertThat(logoPart).isNotNull();
-		assertThat(logoPart.getContentType()).startsWith("image/png");
+		assertThat(logoPart.getFileName()).isEqualTo("vetcore-logo.png");
+		assertThat(logoPart.getContentType()).startsWith("image/png").contains("vetcore-logo.png");
 		assertThat(logoPart.getInputStream().readAllBytes()).isNotEmpty();
 	}
 
