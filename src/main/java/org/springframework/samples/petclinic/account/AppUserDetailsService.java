@@ -25,7 +25,8 @@ public class AppUserDetailsService implements UserDetailsService {
 	@Override
 	@Transactional(readOnly = true)
 	public UserDetails loadUserByUsername(String username) {
-		AppUser user = this.users.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(username));
+		String lookup = username.contains("@") ? EmailAddresses.normalize(username) : username;
+		AppUser user = this.users.findByUsername(lookup).orElseThrow(() -> new UsernameNotFoundException(lookup));
 		boolean enabled = !AppUser.ROLE_USER.equals(user.getRole()) || this.emails.findById(user.getId())
 			.map(e -> user.getUsername().equals(e.getVerifiedEmail()))
 			.orElse(true);
