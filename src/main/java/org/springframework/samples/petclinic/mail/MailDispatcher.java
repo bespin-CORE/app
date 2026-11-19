@@ -3,6 +3,11 @@ package org.springframework.samples.petclinic.mail;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
+import java.util.Properties;
+import jakarta.mail.Session;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -52,7 +57,15 @@ public class MailDispatcher {
 				continue;
 			}
 			try {
-				MimeMessage message = this.sender.createMimeMessage();
+				Session session = this.sender instanceof JavaMailSenderImpl impl ? impl.getSession()
+						: Session.getInstance(new Properties());
+				MimeMessage message = new MimeMessage(session) {
+					@Override
+					protected void updateMessageID() throws MessagingException {
+						setHeader("Message-ID",
+								"<" + UUID.randomUUID() + "@" + MailDispatcher.this.properties.resolvedDomain() + ">");
+					}
+				};
 				MimeMessageHelper helper = new MimeMessageHelper(message,
 						MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, "UTF-8");
 				helper.setFrom(this.from, "VetCore");

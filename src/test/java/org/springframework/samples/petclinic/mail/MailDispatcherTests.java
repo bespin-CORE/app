@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.springframework.dao.DataIntegrityViolationException;
 
 @SpringBootTest(properties = { "vetcore.scheduling.enabled=false", "vetcore.mail.enabled=true",
-		"spring.mail.username=test@example.com", "spring.mail.password=x" })
+		"spring.mail.username=test@example.com", "spring.mail.password=x", "vetcore.mail.domain=mail.example.org" })
 @Import({ MailTestConfig.class, MailDispatcherTests.FixedClock.class })
 class MailDispatcherTests {
 
@@ -144,6 +144,24 @@ class MailDispatcherTests {
 		assertThatThrownBy(() -> outbox.enqueueOnce(MailKind.VERIFY_EMAIL, "a@example.com",
 				new ComposedMail("a".repeat(201), "b", "c"), "new-key"))
 			.isInstanceOf(DataIntegrityViolationException.class);
+	}
+
+	@Test
+	void messageIdUsesConfiguredDomain() throws Exception {
+		enqueue();
+		enqueue();
+		assertThat(dispatcher.dispatchDue()).isEqualTo(2);
+		var first = sender.sent().get(0);
+		var second = sender.sent().get(1);
+		first.saveChanges();
+		second.saveChanges();
+		assertThat(first.getMessageID()).endsWith("@mail.example.org>");
+		assertThat(second.getMessageID()).endsWith("@mail.example.org>").isNotEqualTo(first.getMessageID());
+	}
+
+	@Test
+	void smtpLocalhostUsesDomain() {
+		assertThat(sender.getSession().getProperty("mail.smtp.localhost")).isEqualTo("mail.example.org");
 	}
 
 }
