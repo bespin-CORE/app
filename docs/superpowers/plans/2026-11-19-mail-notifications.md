@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- 저장소 `bespin-CORE/app` 사본(`/home/qorgh529/orca/workspaces/final-project/petclinic-final-team`). 경로는 이 루트 기준.
+- 저장소 `bespin-CORE/app` 의 로컬 사본. 경로는 이 루트 기준.
 - 시작 전에 이슈를 만들고, `feat/2-owner-self-service`에서 브랜치 `feat/<이슈번호>-mail-notifications`를 딴다. 작업마다 커밋하고, push·PR은 사용자 확인 후에 한다.
 - 새 패키지 `org.springframework.samples.petclinic.mail`. 계정 관련은 기존 `account`, 예약 관련은 `reservation`.
 - 새 의존성은 `spring-boot-starter-mail` 하나뿐(`pom.xml`, `build.gradle` 둘 다). 테스트 의존성 추가 금지.
