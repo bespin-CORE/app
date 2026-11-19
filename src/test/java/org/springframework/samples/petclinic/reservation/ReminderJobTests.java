@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.*;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.samples.petclinic.mail.MailComposer;
+import static org.mockito.Mockito.*;
 import org.springframework.samples.petclinic.account.*;
 import org.springframework.samples.petclinic.mail.MailOutboxRepository;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,6 +53,9 @@ class ReminderJobTests {
 
 	@Autowired
 	ReminderJob job;
+
+	@MockitoSpyBean
+	MailComposer composer;
 
 	@Autowired
 	MutableClock clock;
@@ -153,6 +159,14 @@ class ReminderJobTests {
 		schedules.saveAndFlush(schedule);
 		clock.set(LocalDateTime.of(2026, 1, 2, 18, 0));
 		assertThat(job.enqueueDueReminders()).isEqualTo(1);
+	}
+
+	@Test
+	void doesNotComposeWhenAlreadyQueued() {
+		assertThat(job.enqueueDueReminders()).isEqualTo(1);
+		reset(composer);
+		assertThat(job.enqueueDueReminders()).isZero();
+		verifyNoInteractions(composer);
 	}
 
 }

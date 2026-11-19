@@ -23,13 +23,16 @@ public class ReminderJob {
 
 	private final Clock clock;
 
+	private final MailOutboxRepository mailRows;
+
 	public ReminderJob(ReservationRepository reservations, UserEmailService emails, MailComposer composer,
-			MailOutboxService outbox, Clock clock) {
+			MailOutboxService outbox, Clock clock, MailOutboxRepository mailRows) {
 		this.reservations = reservations;
 		this.emails = emails;
 		this.composer = composer;
 		this.outbox = outbox;
 		this.clock = clock;
+		this.mailRows = mailRows;
 	}
 
 	@Scheduled(fixedDelayString = "PT15M")
@@ -44,10 +47,13 @@ public class ReminderJob {
 			LocalDateTime threshold = schedule.getTreatmentDate().minusDays(1).atTime(LocalTime.of(18, 0));
 			if (now.isBefore(threshold) || !now.isBefore(start))
 				continue;
+			String key = "REMINDER:" + reservation.getId() + ":" + schedule.getTreatmentDate();
+			if (this.mailRows.existsByDedupeKey(key))
+				continue;
 			var email = this.emails.verifiedEmail(reservation.getUser().getId());
 			if (email.isPresent() && this.outbox.enqueueOnce(MailKind.RESERVATION_REMINDER, email.get(),
 					this.composer.compose(MailKind.RESERVATION_REMINDER, ReservationMailer.variables(reservation)),
-					"REMINDER:" + reservation.getId() + ":" + schedule.getTreatmentDate()))
+					key))
 				count++;
 		}
 		return count;
