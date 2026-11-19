@@ -1,2 +1,17 @@
-예약: [(${hospital})] [(${treatment})] [(${date})] [(${time})] [(${petName})] [(${status})]
+[[#{mail.brand}]] - [(#{mail.reservation.reminder.title})]
+
+[(#{mail.reservation.reminder.intro(${date}, ${time})})]
+
+[(#{mail.reservation.reminder.highlight})]: [(${date})] [(${time})]
+
+- [(#{mail.reservation.field.hospital})]: [(${hospital})]
+- [(#{mail.reservation.field.treatment})]: [(${treatment})]
+- [(#{mail.reservation.field.schedule})]: [(${date})] [(${time})]
+- [(#{mail.reservation.field.pet})]: [(${petName})]
+- [(#{mail.reservation.field.status})]: [(#{${'reservationStatus.' + status}})]
+
+[(#{mail.reservations.link})]:
 [(${baseUrl})]/reservations
+
+---
+[(#{mail.footer})]

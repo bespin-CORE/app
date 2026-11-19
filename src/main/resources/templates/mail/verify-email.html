@@ -1,3 +1,4 @@
-<!DOCTYPE html><html xmlns:th="https://www.thymeleaf.org"><body>
-<p th:text="#{mail.verify.intro}"></p><a th:href="${link}" th:text="#{mail.verify.action}"></a>
-</body></html>
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+	th:replace="~{mail/fragments/layout :: page(#{mail.verify.title}, #{mail.verify.intro}, null, ${link}, #{mail.verify.action}, ${link}, #{mail.verify.safety})}">
+</html>

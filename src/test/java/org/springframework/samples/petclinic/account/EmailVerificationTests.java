@@ -72,7 +72,7 @@ class EmailVerificationTests {
 
 	private String token() {
 		String body = outbox.findAll().get(outbox.findAll().size() - 1).getBodyText();
-		return body.substring(body.indexOf("token=") + 6).trim();
+		return body.substring(body.indexOf("token=") + 6).split("\\s+", 2)[0];
 	}
 
 	@Test

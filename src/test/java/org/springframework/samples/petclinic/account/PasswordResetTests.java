@@ -77,7 +77,7 @@ class PasswordResetTests {
 
 	String token() {
 		String text = outbox.findAll().get(outbox.findAll().size() - 1).getBodyText();
-		return text.substring(text.indexOf("token=") + 6).trim();
+		return text.substring(text.indexOf("token=") + 6).split("\\s+", 2)[0];
 	}
 
 	@Test

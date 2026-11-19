@@ -1,4 +1,4 @@
-<!DOCTYPE html><html xmlns:th="https://www.thymeleaf.org"><body>
-<p th:text="#{mail.reservation.intro}"></p><p th:text="${hospital}"></p><p th:text="${treatment}"></p><p th:text="${date}"></p><p th:text="${time}"></p><p th:text="${petName}"></p><p th:text="${status}"></p>
-<a th:href="${baseUrl + '/reservations'}" th:text="#{mail.reservations.link}"></a>
-</body></html>
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+	th:replace="~{mail/fragments/layout :: page(#{mail.reservation.cancelled.title}, #{mail.reservation.cancelled.intro}, ~{mail/fragments/components :: reservationDetails(true)}, ${baseUrl + '/reservations'}, #{mail.reservations.link}, null, null)}">
+</html>

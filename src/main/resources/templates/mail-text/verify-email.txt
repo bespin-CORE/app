@@ -1,1 +1,11 @@
-이메일 인증: [(${link})]
+[[#{mail.brand}]] - [(#{mail.verify.title})]
+
+[(#{mail.verify.intro})]
+
+[(#{mail.verify.action})]:
+[(${link})]
+
+[(#{mail.verify.safety})]
+
+---
+[(#{mail.footer})]

@@ -30,8 +30,10 @@ public class MailComposer {
 		resolver.setSuffix(".txt");
 		resolver.setTemplateMode(TemplateMode.TEXT);
 		resolver.setCharacterEncoding("UTF-8");
-		this.text = new SpringTemplateEngine();
-		this.text.setTemplateResolver(resolver);
+		SpringTemplateEngine textEngine = new SpringTemplateEngine();
+		textEngine.setTemplateResolver(resolver);
+		textEngine.setTemplateEngineMessageSource(messages);
+		this.text = textEngine;
 	}
 
 	public ComposedMail compose(MailKind kind, Map<String, Object> vars) {
@@ -39,7 +41,9 @@ public class MailComposer {
 		context.setVariables(vars);
 		context.setVariable("baseUrl", this.properties.baseUrl());
 		String name = kind.name().toLowerCase(Locale.ROOT).replace('_', '-');
-		return new ComposedMail(this.messages.getMessage("mail.subject." + kind.name(), null, Locale.KOREAN),
+		Object[] subjectArgs = (kind == MailKind.RESERVATION_REMINDER && vars.containsKey("date")
+				&& vars.containsKey("time")) ? new Object[] { vars.get("date"), vars.get("time") } : null;
+		return new ComposedMail(this.messages.getMessage("mail.subject." + kind.name(), subjectArgs, Locale.KOREAN),
 				this.text.process(name, context), this.html.process("mail/" + name, context));
 	}
 
