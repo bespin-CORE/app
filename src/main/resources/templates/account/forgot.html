@@ -1,0 +1,5 @@
+<!DOCTYPE html><html xmlns:th="https://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'login')}">
+<body><div class="vc-card"><h1 th:text="#{password.forgot}"></h1>
+<p th:if="${param.sent != null}" th:text="#{password.sent}"></p>
+<form th:action="@{/password/forgot}" method="post"><label for="email" th:text="#{email.label}"></label><input id="email" name="email" type="email" maxlength="254" required /><button class="vc-btn-primary" type="submit" th:text="#{password.send}"></button></form>
+</div></body></html>

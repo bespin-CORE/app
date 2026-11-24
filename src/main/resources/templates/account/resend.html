@@ -1,0 +1,4 @@
+<!DOCTYPE html><html xmlns:th="https://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'login')}">
+<body><div class="vc-card"><h1 th:text="#{email.resend}"></h1><p th:if="${param.sent != null}" th:text="#{email.resend.sent}"></p>
+<form th:action="@{/verify-email/resend}" method="post"><label for="email" th:text="#{email.label}"></label><input id="email" name="email" type="email" maxlength="25" required /><button class="vc-btn-primary" type="submit" th:text="#{email.resend}"></button></form>
+</div></body></html>

@@ -25,8 +25,13 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT,
+		properties = { "petclinic.staff.username=concurrency_staff", "petclinic.staff.password=concurrency-test-pw" })
 public class PetClinicConcurrencyTests {
+
+	private static final String STAFF_USERNAME = "concurrency_staff";
+
+	private static final String STAFF_PASSWORD = "concurrency-test-pw";
 
 	@LocalServerPort
 	private int port;
@@ -50,7 +55,35 @@ public class PetClinicConcurrencyTests {
 		// Ensure duplicate pet name does not exist yet
 		assertThat(owner.getPet(duplicatePetName)).isNull();
 
-		RestTemplate template = restTemplateBuilder.baseUri("http://localhost:" + port).build();
+		// Owner records are for staff only and forms are protected against CSRF, so sign
+		// in
+		// first and reuse that session (kept by the cookie handler) for both requests
+		java.net.http.HttpClient httpClient = java.net.http.HttpClient.newBuilder()
+			.cookieHandler(new java.net.CookieManager())
+			.followRedirects(java.net.http.HttpClient.Redirect.NORMAL)
+			.build();
+		RestTemplate template = restTemplateBuilder.baseUri("http://localhost:" + port)
+			.requestFactory(() -> new org.springframework.http.client.JdkClientHttpRequestFactory(httpClient))
+			.build();
+		java.util.regex.Pattern tokenPattern = java.util.regex.Pattern.compile("name=\"_csrf\" value=\"([^\"]+)\"");
+
+		java.util.regex.Matcher loginToken = tokenPattern.matcher(template.getForObject("/login", String.class));
+		assertThat(loginToken.find()).isTrue();
+		MultiValueMap<String, String> login = new LinkedMultiValueMap<>();
+		login.add("username", STAFF_USERNAME);
+		login.add("password", STAFF_PASSWORD);
+		login.add("_csrf", loginToken.group(1));
+		HttpHeaders loginHeaders = new HttpHeaders();
+		loginHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		template.postForEntity("/login", new HttpEntity<>(login, loginHeaders), String.class);
+
+		// lang=en keeps the duplicate-name message this test looks for in English
+		ResponseEntity<String> formPage = template.getForEntity("/owners/" + ownerId + "/pets/new?lang=en",
+				String.class);
+		java.util.regex.Matcher tokenMatcher = tokenPattern.matcher(formPage.getBody());
+		assertThat(tokenMatcher.find()).isTrue();
+		assertThat(formPage.getBody()).contains("name=\"birthDate\"");
+		String csrfToken = tokenMatcher.group(1);
 
 		int threadCount = 2;
 		ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
@@ -74,6 +107,7 @@ public class PetClinicConcurrencyTests {
 					map.add("name", duplicatePetName);
 					map.add("birthDate", "2020-01-01");
 					map.add("type", "cat");
+					map.add("_csrf", csrfToken);
 
 					HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 
